@@ -4,6 +4,8 @@ plugins {
 
 dependencies {
     implementation(kotlin("stdlib"))
+    testImplementation("org.jetbrains.kotlin:kotlin-test")
+    testImplementation("io.mockk:mockk:1.12.0")
 }
 
 group = "com.runetopic.cryptography"
