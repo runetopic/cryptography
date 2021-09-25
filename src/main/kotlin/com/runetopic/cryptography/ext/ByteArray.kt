@@ -6,10 +6,10 @@ import com.runetopic.cryptography.xtea.XTEA
 /**
  * @author Jordan Abraham
  */
-fun ByteArray.fromXTEA(rounds: Int, keys: IntArray = IntArray(4)): ByteArray = XTEA(rounds, keys).decrypt(this)
-fun ByteArray.toXTEA(rounds: Int, keys: IntArray = IntArray(4)): ByteArray = XTEA(rounds, keys).encrypt(this)
+fun ByteArray.fromXTEA(rounds: Int, keys: IntArray = IntArray(4)): ByteArray = XTEA(rounds, keys).from(this)
+fun ByteArray.toXTEA(rounds: Int, keys: IntArray = IntArray(4)): ByteArray = XTEA(rounds, keys).to(this)
 
-fun ByteArray.toWhirlpool(rounds: Int = 10, size: Int = 64): ByteArray = Whirlpool(rounds, size).encrypt(this)
+fun ByteArray.toWhirlpool(rounds: Int = 10, size: Int = 64): ByteArray = Whirlpool(rounds, size).to(this)
 
 internal fun ByteArray.g4(offset: Int): Int {
     return (/*****/(this[offset].toInt() and 0xFF shl 24)

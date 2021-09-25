@@ -13,7 +13,7 @@ internal class XTEA(
     override fun getRounds(): Int = rounds
     override fun getKeys(): IntArray = keys
 
-    override fun decrypt(src: ByteArray): ByteArray {
+    override fun from(src: ByteArray): ByteArray {
         val size = Int.SIZE_BYTES * 2
         check(src.size % size == 0)
         val decrypted = src.copyOf()
@@ -32,7 +32,7 @@ internal class XTEA(
         return decrypted
     }
 
-    override fun encrypt(src: ByteArray): ByteArray {
+    override fun to(src: ByteArray): ByteArray {
         val size = Int.SIZE_BYTES * 2
         check(src.size % size == 0)
         val encrypted = src.copyOf()

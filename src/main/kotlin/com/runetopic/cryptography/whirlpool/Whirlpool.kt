@@ -11,7 +11,7 @@ class Whirlpool(
     private val blockRounds = LongArray(rounds + 1)
     private val hash = LongArray(8)
     private val buffer = ByteArray(size)
-    private val bitLength = ByteArray(32)
+    private val bitSize = ByteArray(32)
 
     private var position = 0
     private var digestBits = 0
@@ -22,7 +22,7 @@ class Whirlpool(
     override fun getBlockRounds(): LongArray = blockRounds
     override fun getHash(): LongArray = hash
     override fun getBuffer(): ByteArray = buffer
-    override fun getBitLength(): ByteArray = bitLength
+    override fun getBitSize(): ByteArray = bitSize
 
     override fun getPosition(): Int = position
     override fun setPosition(position: Int) {
@@ -34,14 +34,8 @@ class Whirlpool(
        this.digestBits = digestBits
     }
 
-    override fun decrypt(src: ByteArray): ByteArray {
-        TODO("Not yet implemented")
-    }
-
-    override fun encrypt(src: ByteArray): ByteArray {
-        setup(src, (src.size * 8).toLong())
-        return hash(size)
-    }
+    override fun from(src: ByteArray): ByteArray = throw IllegalAccessError("Whirlpool is a one-way function.")
+    override fun to(src: ByteArray): ByteArray = hash(src, size)
 
     init {
         val sbox = intArrayOf(
@@ -63,7 +57,7 @@ class Whirlpool(
             0x163A, 0x6909, 0x70B6, 0xD0ED, 0xCC42, 0x98A4, 0x285C, 0xF886
         )
 
-        (0 until 256).forEach {
+        (0 until sbox.size * 2).forEach {
             val code = sbox[it / 2].toLong()
 
             val v1 = if ((it and 1) == 0) code ushr 8 else code and 0xFF

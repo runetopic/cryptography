@@ -15,22 +15,27 @@ internal interface IWhirlpool: ICryptography {
     fun getBlockRounds(): LongArray
     fun getHash(): LongArray
     fun getBuffer(): ByteArray
-    fun getBitLength(): ByteArray
-
+    fun getBitSize(): ByteArray
     fun getPosition(): Int
     fun setPosition(position: Int)
-
     fun getDigestBits(): Int
     fun setDigestBits(digestBits: Int)
 
     fun maskWithReductionPolynomial(value: Long): Long = if (value >= 256) (value xor 0x11D) else value
 
-    fun setup(src: ByteArray, bits: Long) {
+    fun hash(src: ByteArray, size: Int): ByteArray {
+        addThenSum(src, (src.size * 8).toLong())
+        val hash = ByteArray(size)
+        (0 until 8).forEach { hash.p8(it * 8, getHash()[it]) }
+        return hash
+    }
+
+    private fun addThenSum(src: ByteArray, bits: Long) {
         var value = bits
         var carry = 0
         (31 downTo 0).forEach {
-            carry += (getBitLength()[it].toInt() and 0xFF) + (value.toInt() and 0xFF)
-            getBitLength()[it] = carry.toByte()
+            carry += (getBitSize()[it].toInt() and 0xFF) + (value.toInt() and 0xFF)
+            getBitSize()[it] = carry.toByte()
             carry = carry ushr 8
             value = value ushr 8
         }
@@ -56,25 +61,20 @@ internal interface IWhirlpool: ICryptography {
             shift(occupied, byte)
         }
         addDigestBits(leftover.toInt())
+        sum()
     }
 
-    fun hash(size: Int): ByteArray {
+    private fun sum() {
         getBuffer()[getPosition()] = (getBuffer()[getPosition()].toInt() or (0x80 ushr (getDigestBits() and 7))).toByte()
         incrementPosition()
-        if (getPosition() > getBitLength().size) {
+        if (getPosition() > getBitSize().size) {
             fill(getBuffer())
             transform()
             setPosition(0)
         }
-        fill(getBitLength())
-        getBitLength().copyInto(getBuffer(), getBitLength().size)
+        fill(getBitSize())
+        getBitSize().copyInto(getBuffer(), getBitSize().size)
         transform()
-
-        val hash = ByteArray(size)
-        (0 until 8).forEach {
-            hash.p8(it * 8, getHash()[it])
-        }
-        return hash
     }
 
     private fun transform() {
