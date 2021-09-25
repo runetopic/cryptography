@@ -22,7 +22,7 @@ class WhirlpoolTest {
     }
 
     @Test
-    fun `test encrypt with whirlpool`() {
+    fun `test whirlpool`() {
         val mock = mockk<IWhirlpool>(relaxed = true)
         every { mock.getRounds() } returns 10
         every { mock.getSize() } returns 64

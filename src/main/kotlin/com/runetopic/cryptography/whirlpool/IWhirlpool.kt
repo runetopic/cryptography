@@ -24,13 +24,13 @@ internal interface IWhirlpool: ICryptography {
     fun maskWithReductionPolynomial(value: Long): Long = if (value >= 256) (value xor 0x11D) else value
 
     fun hash(src: ByteArray, size: Int): ByteArray {
-        addThenSum(src, (src.size * 8).toLong())
+        NEESIEAddThenFinalize(src, (src.size * 8).toLong())
         val hash = ByteArray(size)
         (0 until 8).forEach { hash.p8(it * 8, getHash()[it]) }
         return hash
     }
 
-    private fun addThenSum(src: ByteArray, bits: Long) {
+    private fun NEESIEAddThenFinalize(src: ByteArray, bits: Long) {
         var value = bits
         var carry = 0
         (31 downTo 0).forEach {
@@ -61,18 +61,18 @@ internal interface IWhirlpool: ICryptography {
             shift(occupied, byte)
         }
         addDigestBits(leftover.toInt())
-        sum()
+        finalize()
     }
 
-    private fun sum() {
+    private fun finalize() {
         getBuffer()[getPosition()] = (getBuffer()[getPosition()].toInt() or (0x80 ushr (getDigestBits() and 7))).toByte()
         incrementPosition()
         if (getPosition() > getBitSize().size) {
-            fill(getBuffer())
+            fillRemaining(getBuffer())
             transform()
             setPosition(0)
         }
-        fill(getBitSize())
+        fillRemaining(getBitSize())
         getBitSize().copyInto(getBuffer(), getBitSize().size)
         transform()
     }
@@ -125,7 +125,7 @@ internal interface IWhirlpool: ICryptography {
         getBuffer()[getPosition()] = ((int shl (8 - offset)) and 0xFF).toByte()
     }
 
-    private fun fill(src: ByteArray) {
+    private fun fillRemaining(src: ByteArray) {
         do { getBuffer()[incrementPositionAndReturn()] = 0 }
         while (getPosition() < src.size)
     }
