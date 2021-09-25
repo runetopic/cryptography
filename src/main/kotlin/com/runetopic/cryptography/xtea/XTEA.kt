@@ -1,11 +1,12 @@
 package com.runetopic.cryptography.xtea
 
-import java.nio.ByteBuffer
+import com.runetopic.cryptography.ext.g4
+import com.runetopic.cryptography.ext.p4
 
 /**
  * @author Jordan Abraham
  */
-class XTEA(
+internal class XTEA(
     private val rounds: Int,
     private val keys: IntArray = IntArray(4)
 ): IXTEA {
@@ -13,43 +14,41 @@ class XTEA(
     override fun getKeys(): IntArray = keys
 
     override fun decrypt(src: ByteArray): ByteArray {
-        val amount = Int.SIZE_BYTES * 2
-        if (src.size % amount != 0) throw IllegalArgumentException("The src array size must be a multiple of $amount")
-        val buffer = ByteBuffer.wrap(src)
-        val decrypted = ByteBuffer.allocate(src.size)
-        (0 until src.size / amount).forEach { _ ->
-            var v0 = buffer.int
-            var v1 = buffer.int
+        val size = Int.SIZE_BYTES * 2
+        check(src.size % size == 0)
+        val decrypted = src.copyOf()
+        (decrypted.indices step size).forEach {
+            var v0 = decrypted.g4(0 + it)
+            var v1 = decrypted.g4(4 + it)
             var sum = (DELTA * rounds)
             (0 until rounds).forEach { _ ->
                 v1 -= (v0 shl 4 xor (v0 ushr 5)) + v0 xor sum + keys[sum ushr 11 and 3]
                 sum -= DELTA
                 v0 -= (v1 shl 4 xor (v1 ushr 5)) + v1 xor sum + keys[sum and 3]
             }
-            decrypted.putInt(v0)
-            decrypted.putInt(v1)
+            decrypted.p4(0 + it, v0)
+            decrypted.p4(4 + it, v1)
         }
-        return decrypted.put(buffer).array()
+        return decrypted
     }
 
     override fun encrypt(src: ByteArray): ByteArray {
-        val amount = Int.SIZE_BYTES * 2
-        if (src.size % amount != 0) throw IllegalArgumentException("The src array size must be a multiple of $amount")
-        val buffer = ByteBuffer.wrap(src)
-        val encrypted = ByteBuffer.allocate(src.size)
-        (src.indices step amount).forEach { _ ->
-            var v0 = buffer.int
-            var v1 = buffer.int
+        val size = Int.SIZE_BYTES * 2
+        check(src.size % size == 0)
+        val encrypted = src.copyOf()
+        (encrypted.indices step size).forEach {
+            var v0 = encrypted.g4(0 + it)
+            var v1 = encrypted.g4(4 + it)
             var sum = 0
             (0 until rounds).forEach { _ ->
                 v0 += (v1 shl 4 xor (v1 ushr 5)) + v1 xor sum + keys[sum and 3]
                 sum += DELTA
                 v1 += (v0 shl 4 xor (v0 ushr 5)) + v0 xor sum + keys[sum ushr 11 and 3]
             }
-            encrypted.putInt(v0)
-            encrypted.putInt(v1)
+            encrypted.p4(0 + it, v0)
+            encrypted.p4(4 + it, v1)
         }
-        return encrypted.put(buffer).array()
+        return encrypted
     }
 
     internal companion object {
