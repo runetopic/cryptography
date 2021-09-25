@@ -14,10 +14,10 @@ class WhirlpoolTest {
 
     @BeforeTest
     fun `before test`() {
-        decrypted = this::class.java.getResourceAsStream("/whirlpool/whirlpool.txt")!!
+        input = this::class.java.getResourceAsStream("/whirlpool/input.txt")!!
             .bufferedReader().use { it.readLine().split(", ").map { int -> int.toByte() }.toByteArray() }
 
-        hash = this::class.java.getResourceAsStream("/whirlpool/whirlpool-hash.txt")!!
+        whirlpool = this::class.java.getResourceAsStream("/whirlpool/whirlpool-hash.txt")!!
             .bufferedReader().use { it.readLine().split(", ").map { int -> int.toByte() }.toByteArray() }
     }
 
@@ -26,7 +26,7 @@ class WhirlpoolTest {
         val mock = mockk<IWhirlpool>(relaxed = true)
         every { mock.getRounds() } returns 10
         every { mock.getSize() } returns 64
-        assertEquals(hash.contentToString(), decrypted.toWhirlpool(mock.getRounds(), mock.getSize()).contentToString())
+        assertEquals(whirlpool.contentToString(), input.toWhirlpool(mock.getRounds(), mock.getSize()).contentToString())
     }
 
     @Test
@@ -69,7 +69,7 @@ class WhirlpoolTest {
     }
 
     private companion object {
-        lateinit var decrypted: ByteArray
-        lateinit var hash: ByteArray
+        lateinit var input: ByteArray
+        lateinit var whirlpool: ByteArray
     }
 }
