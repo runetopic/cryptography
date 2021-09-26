@@ -1,7 +1,6 @@
 package com.runetopic.cryptography.isaac
 
 import com.runetopic.cryptography.ext.toISAAC
-import com.runetopic.cryptography.whirlpool.WhirlpoolTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
