@@ -1,6 +1,8 @@
 package com.runetopic.cryptography.isaac
 
 import com.runetopic.cryptography.ext.toISAAC
+import com.runetopic.cryptography.whirlpool.WhirlpoolTest
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -9,10 +11,20 @@ import kotlin.test.assertEquals
  */
 class ISAACTest {
 
+    @BeforeTest
+    fun `before test`() {
+        random = this::class.java.getResourceAsStream("/isaac/isaac-random.txt")!!
+            .bufferedReader().use { it.readLines().map { s -> s.toInt() } }
+    }
+
     @Test
     fun `test isaac`() {
         val input = IntArray(4)
         val isaac = input.toISAAC()
-        assertEquals(405143795, isaac.getNext())
+        (0 until 256).forEach { assertEquals(random[it], isaac.getNext()) }
+    }
+
+    private companion object {
+        lateinit var random: List<Int>
     }
 }
