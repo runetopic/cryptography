@@ -37,7 +37,6 @@ class XTEATest {
         every { mock.getRounds() } returns 8
         every { mock.getKeys() } returns IntArray(4)
         assertEquals(rounds8.contentToString(), decrypted.fromXTEA(mock.getRounds(), mock.getKeys()).contentToString())
-    }
 
     @Test
     fun `test encrypt with xtea 8 rounds`() {
