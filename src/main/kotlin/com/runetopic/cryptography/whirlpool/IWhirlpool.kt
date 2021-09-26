@@ -8,7 +8,7 @@ import com.runetopic.cryptography.ext.p8
 /**
  * @author Jordan Abraham
  */
-internal interface IWhirlpool: ICryptography {
+internal interface IWhirlpool: ICryptography<ByteArray, ByteArray> {
     fun getRounds(): Int
     fun getSize(): Int
     fun getBlock(): Array<LongArray>
