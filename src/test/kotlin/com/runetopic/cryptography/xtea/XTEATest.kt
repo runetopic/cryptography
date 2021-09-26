@@ -32,6 +32,14 @@ class XTEATest {
     }
 
     @Test
+    fun idk() {
+        val mock = mockk<IXTEA>(relaxed = true)
+        every { mock.getRounds() } returns 32
+        every { mock.getKeys() } returns IntArray(4)
+        assertEquals("[-22, 56, -103, 36, 1, 86, -95, 47]", byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7).fromXTEA(mock.getRounds(), mock.getKeys()).contentToString())
+    }
+
+    @Test
     fun `test decrypt with xtea 8 rounds`() {
         val mock = mockk<IXTEA>(relaxed = true)
         every { mock.getRounds() } returns 8
