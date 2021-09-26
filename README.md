@@ -19,7 +19,7 @@ val bytes = byteArrayOf(#)
 val encrypted bytes.toXTEA(rounds = 32, keys = IntArray(4))
 ```
 # Whirlpool
-### Hash
+### Hashing
 ```
 val bytes = byteArrayOf(#)
 val hash = bytes.toWhirlpool(rounds = 10, size = 64)
