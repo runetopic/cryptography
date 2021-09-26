@@ -9,12 +9,18 @@ Coming Soon
 # XTEA
 ### Decryption
 ```
-val bytes = byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7)
-bytes.fromXTEA(rounds = 32, keys = IntArray(4))
+val bytes = byteArrayOf(#)
+val decrypted = bytes.fromXTEA(rounds = 32, keys = IntArray(4))
 ```
 
 ### Encryption
 ```
-val bytes = byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7)
-bytes.toXTEA(rounds = 32, keys = IntArray(4))
+val bytes = byteArrayOf(#)
+val encrypted bytes.toXTEA(rounds = 32, keys = IntArray(4))
+```
+# Whirlpool
+### Hash
+```
+val bytes = byteArrayOf(#)
+val hash = bytes.toWhirlpool(rounds = 10, size = 64)
 ```
