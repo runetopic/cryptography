@@ -15,7 +15,6 @@ internal class XTEA(
 
     override fun from(src: ByteArray): ByteArray {
         val size = Int.SIZE_BYTES * 2
-        check(src.size % size == 0)
         val decrypted = src.copyOf()
         (decrypted.indices step size).forEach {
             var v0 = decrypted.g4(0 + it)
@@ -34,7 +33,6 @@ internal class XTEA(
 
     override fun to(src: ByteArray): ByteArray {
         val size = Int.SIZE_BYTES * 2
-        check(src.size % size == 0)
         val encrypted = src.copyOf()
         (encrypted.indices step size).forEach {
             var v0 = encrypted.g4(0 + it)
