@@ -4,7 +4,6 @@ import com.runetopic.cryptography.fromXTEA
 import com.runetopic.cryptography.toXTEA
 import io.mockk.every
 import io.mockk.mockk
-import java.nio.ByteBuffer
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -40,7 +39,7 @@ class XTEATest {
         val mock = mockk<IXTEA>(relaxed = true)
         every { mock.getRounds() } returns 8
         every { mock.getKeys() } returns keys
-        assertEquals(rounds8.contentToString(), ByteBuffer.wrap(decrypted).fromXTEA(mock.getRounds(), mock.getKeys()).contentToString())
+        assertEquals(rounds8.contentToString(), decrypted.fromXTEA(mock.getRounds(), mock.getKeys()).contentToString())
     }
 
     @Test
@@ -48,7 +47,7 @@ class XTEATest {
         val mock = mockk<IXTEA>(relaxed = true)
         every { mock.getRounds() } returns 8
         every { mock.getKeys() } returns keys
-        assertEquals(decrypted.contentToString(), ByteBuffer.wrap(rounds8).toXTEA(mock.getRounds(), mock.getKeys()).contentToString())
+        assertEquals(decrypted.contentToString(), rounds8.toXTEA(mock.getRounds(), mock.getKeys()).contentToString())
     }
 
     @Test
@@ -56,7 +55,7 @@ class XTEATest {
         val mock = mockk<IXTEA>(relaxed = true)
         every { mock.getRounds() } returns 16
         every { mock.getKeys() } returns keys
-        assertEquals(rounds16.contentToString(), ByteBuffer.wrap(decrypted).fromXTEA(mock.getRounds(), mock.getKeys()).contentToString())
+        assertEquals(rounds16.contentToString(), decrypted.fromXTEA(mock.getRounds(), mock.getKeys()).contentToString())
     }
 
     @Test
@@ -64,7 +63,7 @@ class XTEATest {
         val mock = mockk<IXTEA>(relaxed = true)
         every { mock.getRounds() } returns 16
         every { mock.getKeys() } returns keys
-        assertEquals(decrypted.contentToString(), ByteBuffer.wrap(rounds16).toXTEA(mock.getRounds(), mock.getKeys()).contentToString())
+        assertEquals(decrypted.contentToString(), rounds16.toXTEA(mock.getRounds(), mock.getKeys()).contentToString())
     }
 
     @Test
@@ -72,7 +71,7 @@ class XTEATest {
         val mock = mockk<IXTEA>(relaxed = true)
         every { mock.getRounds() } returns 32
         every { mock.getKeys() } returns keys
-        assertEquals(rounds32.contentToString(), ByteBuffer.wrap(decrypted).fromXTEA(mock.getRounds(), mock.getKeys()).contentToString())
+        assertEquals(rounds32.contentToString(), decrypted.fromXTEA(mock.getRounds(), mock.getKeys()).contentToString())
     }
 
     @Test
@@ -80,7 +79,7 @@ class XTEATest {
         val mock = mockk<IXTEA>(relaxed = true)
         every { mock.getRounds() } returns 32
         every { mock.getKeys() } returns keys
-        assertEquals(decrypted.contentToString(), ByteBuffer.wrap(rounds32).toXTEA(mock.getRounds(), mock.getKeys()).contentToString())
+        assertEquals(decrypted.contentToString(), rounds32.toXTEA(mock.getRounds(), mock.getKeys()).contentToString())
     }
 
     @Test
@@ -88,7 +87,7 @@ class XTEATest {
         val mock = mockk<IXTEA>(relaxed = true)
         every { mock.getRounds() } returns 64
         every { mock.getKeys() } returns keys
-        assertEquals(rounds64.contentToString(), ByteBuffer.wrap(decrypted).fromXTEA(mock.getRounds(), mock.getKeys()).contentToString())
+        assertEquals(rounds64.contentToString(), decrypted.fromXTEA(mock.getRounds(), mock.getKeys()).contentToString())
     }
 
     @Test
@@ -96,7 +95,7 @@ class XTEATest {
         val mock = mockk<IXTEA>(relaxed = true)
         every { mock.getRounds() } returns 64
         every { mock.getKeys() } returns keys
-        assertEquals(decrypted.contentToString(), ByteBuffer.wrap(rounds64).toXTEA(mock.getRounds(), mock.getKeys()).contentToString())
+        assertEquals(decrypted.contentToString(), rounds64.toXTEA(mock.getRounds(), mock.getKeys()).contentToString())
     }
 
     private companion object {
