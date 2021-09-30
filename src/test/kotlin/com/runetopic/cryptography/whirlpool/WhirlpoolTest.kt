@@ -1,6 +1,6 @@
 package com.runetopic.cryptography.whirlpool
 
-import com.runetopic.cryptography.ext.toWhirlpool
+import com.runetopic.cryptography.toWhirlpool
 import io.mockk.every
 import io.mockk.mockk
 import kotlin.test.BeforeTest
