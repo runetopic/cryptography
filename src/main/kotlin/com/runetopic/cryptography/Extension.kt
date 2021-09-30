@@ -14,8 +14,10 @@ infix fun Int.downUntil(to: Int): IntProgression {
     return this downTo (to + 1)
 }
 
-fun ByteBuffer.fromXTEA(rounds: Int, keys: IntArray = IntArray(4), offset: Int = 0): ByteArray = XTEA(rounds, keys, offset).from(this)
-fun ByteBuffer.toXTEA(rounds: Int, keys: IntArray = IntArray(4), offset: Int = 0): ByteArray = XTEA(rounds, keys, offset).to(this)
+fun ByteArray.fromXTEA(rounds: Int, keys: IntArray = IntArray(4), offset: Int = 0): ByteArray = XTEA(rounds, keys, offset).from(
+    ByteBuffer.wrap(this))
+fun ByteArray.toXTEA(rounds: Int, keys: IntArray = IntArray(4), offset: Int = 0): ByteArray = XTEA(rounds, keys, offset).to(
+    ByteBuffer.wrap(this))
 
 fun ByteArray.toWhirlpool(rounds: Int = 10, size: Int = 64): ByteArray = Whirlpool(rounds, size).to(this)
 
