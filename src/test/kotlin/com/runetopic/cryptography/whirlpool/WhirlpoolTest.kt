@@ -3,7 +3,6 @@ package com.runetopic.cryptography.whirlpool
 import com.runetopic.cryptography.toWhirlpool
 import io.mockk.every
 import io.mockk.mockk
-import java.nio.ByteBuffer
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
