@@ -3,7 +3,7 @@ Useful cryptography algorithms used throughout the RuneTopic organization.
 
 # Gradle
 ```
-cryptography = { module = "com.runetopic.cryptography:cryptography", version.ref "1.0.4-SNAPSHOT" }
+cryptography = { module = "com.runetopic.cryptography:cryptography", version.ref "1.0.5-SNAPSHOT" }
 ```
 
 # XTEA
