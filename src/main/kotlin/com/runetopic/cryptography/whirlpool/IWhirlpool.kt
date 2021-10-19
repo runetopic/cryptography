@@ -67,13 +67,17 @@ internal interface IWhirlpool: ICryptography<ByteArray, ByteArray> {
     private fun finalize() {
         getBuffer()[getPosition()] = (getBuffer()[getPosition()].toInt() or (0x80 ushr (getDigestBits() and 7))).toByte()
         incrementPosition()
-        if (getPosition() > getBitSize().size) {
-            fillRemaining(getBuffer())
+        if (getPosition() > 32) {
+            while (getPosition() < 64) {
+                getBuffer()[incrementPositionAndReturn()] = 0
+            }
             transform()
             setPosition(0)
         }
-        fillRemaining(getBitSize())
-        getBitSize().copyInto(getBuffer(), getBitSize().size)
+        while (getPosition() < 32) {
+            getBuffer()[incrementPositionAndReturn()] = 0
+        }
+        getBitSize().copyInto(getBuffer(), 32, 0, 32)
         transform()
     }
 
@@ -123,11 +127,6 @@ internal interface IWhirlpool: ICryptography<ByteArray, ByteArray> {
             setPosition(0)
         }
         getBuffer()[getPosition()] = ((int shl (8 - offset)) and 0xFF).toByte()
-    }
-
-    private fun fillRemaining(src: ByteArray) {
-        do { getBuffer()[incrementPositionAndReturn()] = 0 }
-        while (getPosition() < src.size)
     }
 
     private fun addDigestBits(amount: Int) {
