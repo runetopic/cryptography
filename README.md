@@ -2,7 +2,7 @@
 Useful cryptography algorithms used throughout the RuneTopic organization.
 
 # Gradle
-```
+```shell
 cryptography = { module = "com.runetopic.cryptography:cryptography", version.ref "1.0.6-SNAPSHOT" }
 ```
 
