@@ -8,7 +8,7 @@ cryptography = { module = "com.runetopic.cryptography:cryptography", version.ref
 
 # XTEA
 ### Decryption
-```
+```kotlin
 val bytes = byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7)
 val decrypted = bytes.fromXTEA(rounds = 32, keys = IntArray(4))
 
@@ -17,7 +17,7 @@ assertEquals(expected, decrypted.contentToString())
 ```
 
 ### Encryption
-```
+```kotlin
 val bytes = byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7)
 val encrypted = bytes.toXTEA(rounds = 32, keys = IntArray(4))
 
@@ -27,7 +27,7 @@ assertEquals(expected, encrypted.contentToString())
 
 # Whirlpool
 ### Hashing
-```
+```kotlin
 val input = "The quick brown fox jumps over the lazy dog"
 val hash = input.toByteArray().toWhirlpool(rounds = 10, size = 64)
 
@@ -36,7 +36,7 @@ assertEquals(expected, hash.joinToString("") { "%02X".format(it) })
 ```
 
 # ISAAC
-```
+```kotlin
 val seed = IntArray(4)
 val isaac = seed.toISAAC()
 val random = isaac.getNext()
