@@ -6,7 +6,6 @@ import com.runetopic.cryptography.isaac.ISAAC
 import com.runetopic.cryptography.whirlpool.Whirlpool
 import com.runetopic.cryptography.xtea.XTEA
 import java.nio.ByteBuffer
-import java.nio.charset.Charset
 
 /**
  * @author Jordan Abraham
@@ -16,8 +15,15 @@ infix fun Int.downUntil(to: Int): IntProgression {
     return this downTo (to + 1)
 }
 
-fun ByteArray.decodeHuffman(length: Int, maxLength: Int = 75): String = Huffman.decode(length, maxLength, ByteBuffer.wrap(this))
-fun String.encodeHuffman(dest: ByteArray): Int = Huffman.encode(toByteArray(Charset.defaultCharset()), dest)
+fun ByteArray.fromHuffman(huffman: Huffman, length: Int, maxLength: Int = 75): String {
+    var actualLength = length
+    if (actualLength > maxLength) actualLength = maxLength
+    val decompressed = ByteArray(256)
+    huffman.decompress(this, decompressed, actualLength)
+    return String(decompressed, 0, actualLength)
+}
+
+fun String.toHuffman(huffman: Huffman, dest: ByteArray): Int = huffman.compress(this, dest)
 
 fun ByteArray.fromXTEA(rounds: Int, keys: IntArray = IntArray(4), offset: Int = 0): ByteArray = XTEA(rounds, keys, offset).from(
     ByteBuffer.wrap(this)
