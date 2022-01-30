@@ -8,7 +8,7 @@ import com.runetopic.cryptography.p8
 /**
  * @author Jordan Abraham
  */
-internal interface IWhirlpool: ICryptography<ByteArray, ByteArray> {
+internal interface IWhirlpool : ICryptography<ByteArray, ByteArray> {
     fun getRounds(): Int
     fun getSize(): Int
     fun getBlock(): Array<LongArray>
@@ -44,7 +44,7 @@ internal interface IWhirlpool: ICryptography<ByteArray, ByteArray> {
         val occupied = getDigestBits() and 7
         var srcPosition = 0
         var byte: Int
-        (bits.toInt() downUntil  8 step 8).forEach { _ ->
+        (bits.toInt() downUntil 8 step 8).forEach { _ ->
             byte = (((src[srcPosition].toInt() shl space) and 0xFF) or ((src[srcPosition + 1].toInt() and 0xFF) ushr (8 - space)))
             getBuffer()[getPosition()] = (getBuffer()[getPosition()].toInt() or (byte ushr occupied)).toByte()
             shift(occupied, byte)

@@ -3,7 +3,7 @@ package com.runetopic.cryptography.isaac
 /**
  * @author Jordan Abraham
  */
-class ISAAC: IISAAC {
+class ISAAC : IISAAC {
     private val results = IntArray(SIZE)
     private val mem = IntArray(SIZE)
 
@@ -61,14 +61,14 @@ class ISAAC: IISAAC {
     }
 
     private fun mix(firstPass: Boolean, position: Int) {
-        a = a xor (b shl 11);/****/d += a; b += c
-        b = b xor (c ushr 2);/****/e += b; c += d
-        c = c xor (d shl 8);/*****/f += c; d += e
-        d = d xor (e ushr 16);/***/g += d; e += f
-        e = e xor (f shl 10);/****/h += e; f += g
-        f = f xor (g ushr 4);/****/a += f; g += h
-        g = g xor (h shl 8);/*****/b += g; h += a
-        h = h xor (a ushr 9);/****/c += h; a += b
+        a = a xor (b shl 11); /****/d += a; b += c
+        b = b xor (c ushr 2); /****/e += b; c += d
+        c = c xor (d shl 8); /*****/f += c; d += e
+        d = d xor (e ushr 16); /***/g += d; e += f
+        e = e xor (f shl 10); /****/h += e; f += g
+        f = f xor (g ushr 4); /****/a += f; g += h
+        g = g xor (h shl 8); /*****/b += g; h += a
+        h = h xor (a ushr 9); /****/c += h; a += b
         if (firstPass.not()) p8(position)
     }
 

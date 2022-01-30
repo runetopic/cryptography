@@ -44,3 +44,5 @@ val random = isaac.getNext()
 val expected = 405143795
 assertEquals(expected, random)
 ```
+
+# Huffman

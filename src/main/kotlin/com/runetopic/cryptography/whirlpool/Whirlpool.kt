@@ -6,7 +6,7 @@ package com.runetopic.cryptography.whirlpool
 class Whirlpool(
     private val rounds: Int,
     private val size: Int
-): IWhirlpool {
+) : IWhirlpool {
     private val block = Array(8) { LongArray(256) }
     private val blockRounds = LongArray(rounds + 1)
     private val hash = LongArray(8)
@@ -31,7 +31,7 @@ class Whirlpool(
 
     override fun getDigestBits(): Int = digestBits
     override fun setDigestBits(digestBits: Int) {
-       this.digestBits = digestBits
+        this.digestBits = digestBits
     }
 
     override fun from(src: ByteArray): ByteArray = throw IllegalAccessError("Whirlpool is a one-way function.")
@@ -67,14 +67,16 @@ class Whirlpool(
             val v8 = maskWithReductionPolynomial(v4 shl 1)
             val v9 = v8 xor v1
 
-            block[0][it] = ((v1 shl 56)
+            block[0][it] = (
+                (v1 shl 56)
                     or (v1 shl 48)
                     or (v4 shl 40)
                     or (v1 shl 32)
                     or (v8 shl 24)
                     or (v5 shl 16)
                     or (v2 shl 8)
-                    or v9)
+                    or v9
+                )
 
             (1 until 8).forEach { index ->
                 block[index][it] = ((block[index - 1][it] ushr 8) or (block[index - 1][it] shl 56))
@@ -84,14 +86,15 @@ class Whirlpool(
             (1..rounds).forEach { round ->
                 val offset = 8 * (round - 1)
                 blockRounds[round] = (
-                        /**/(block[0][offset/**/] and -0x100000000000000L)
+                    /**/(block[0][offset/**/] and -0x100000000000000L)
                         xor (block[1][offset + 1] and 0x00FF000000000000L)
                         xor (block[2][offset + 2] and 0x0000FF0000000000L)
                         xor (block[3][offset + 3] and 0x000000FF00000000L)
                         xor (block[4][offset + 4] and 0x00000000FF000000L)
                         xor (block[5][offset + 5] and 0x0000000000FF0000L)
                         xor (block[6][offset + 6] and 0x000000000000FF00L)
-                        xor (block[7][offset + 7] and 0x00000000000000FFL))
+                        xor (block[7][offset + 7] and 0x00000000000000FFL)
+                    )
             }
         }
     }

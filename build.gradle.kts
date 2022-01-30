@@ -11,7 +11,7 @@ dependencies {
 }
 
 group = "com.runetopic.cryptography"
-version = "1.0.6-SNAPSHOT"
+version = "1.0.7-SNAPSHOT"
 
 java.sourceCompatibility = JavaVersion.VERSION_16
 java.targetCompatibility = JavaVersion.VERSION_16
@@ -85,7 +85,6 @@ publishing {
         }
     }
 }
-
 
 signing {
     sign(publishing.publications["mavenJava"])

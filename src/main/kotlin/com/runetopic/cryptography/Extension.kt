@@ -1,10 +1,12 @@
 @file:JvmName("CryptoExtensions")
 package com.runetopic.cryptography
 
+import com.runetopic.cryptography.huffman.Huffman
 import com.runetopic.cryptography.isaac.ISAAC
 import com.runetopic.cryptography.whirlpool.Whirlpool
 import com.runetopic.cryptography.xtea.XTEA
 import java.nio.ByteBuffer
+import java.nio.charset.Charset
 
 /**
  * @author Jordan Abraham
@@ -14,24 +16,31 @@ infix fun Int.downUntil(to: Int): IntProgression {
     return this downTo (to + 1)
 }
 
+fun ByteArray.decodeHuffman(length: Int, maxLength: Int = 75): String = Huffman.decode(length, maxLength, ByteBuffer.wrap(this))
+fun String.encodeHuffman(dest: ByteArray): Int = Huffman.encode(toByteArray(Charset.defaultCharset()), dest)
+
 fun ByteArray.fromXTEA(rounds: Int, keys: IntArray = IntArray(4), offset: Int = 0): ByteArray = XTEA(rounds, keys, offset).from(
-    ByteBuffer.wrap(this))
+    ByteBuffer.wrap(this)
+)
 fun ByteArray.toXTEA(rounds: Int, keys: IntArray = IntArray(4), offset: Int = 0): ByteArray = XTEA(rounds, keys, offset).to(
-    ByteBuffer.wrap(this))
+    ByteBuffer.wrap(this)
+)
 
 fun ByteArray.toWhirlpool(rounds: Int = 10, size: Int = 64): ByteArray = Whirlpool(rounds, size).to(this)
 
 fun IntArray.toISAAC() = ISAAC().to(this)
 
 internal fun ByteArray.g8(offset: Int): Long {
-    return (/*******/(this[offset].toLong() and 0xFF shl 56)
+    return (
+        /*******/(this[offset].toLong() and 0xFF shl 56)
             or ((this[offset + 1].toLong() and 0xFF) shl 48)
             or ((this[offset + 2].toLong() and 0xFF) shl 40)
             or ((this[offset + 3].toLong() and 0xFF) shl 32)
             or ((this[offset + 4].toLong() and 0xFF) shl 24)
             or ((this[offset + 5].toLong() and 0xFF) shl 16)
             or ((this[offset + 6].toLong() and 0xFF) shl 8)
-            or (this[offset + 7].toLong() and 0xFF))
+            or (this[offset + 7].toLong() and 0xFF)
+        )
 }
 
 internal fun ByteArray.p8(offset: Int, long: Long) {

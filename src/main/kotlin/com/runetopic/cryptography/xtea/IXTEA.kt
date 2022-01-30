@@ -6,7 +6,7 @@ import java.nio.ByteBuffer
 /**
  * @author Jordan Abraham
  */
-internal interface IXTEA: ICryptography<ByteBuffer, ByteArray> {
+internal interface IXTEA : ICryptography<ByteBuffer, ByteArray> {
     fun getRounds(): Int
     fun getKeys(): IntArray
 }

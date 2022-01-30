@@ -9,7 +9,7 @@ internal class XTEA(
     private val rounds: Int,
     private val keys: IntArray = IntArray(4),
     private val offset: Int
-): IXTEA {
+) : IXTEA {
     override fun getRounds(): Int = rounds
     override fun getKeys(): IntArray = keys
 
