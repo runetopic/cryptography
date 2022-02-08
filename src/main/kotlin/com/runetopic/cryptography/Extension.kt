@@ -15,7 +15,7 @@ infix fun Int.downUntil(to: Int): IntProgression {
     return this downTo (to + 1)
 }
 
-fun ByteArray.fromHuffman(huffman: Huffman, length: Int, maxLength: Int = 75): String {
+fun ByteArray.decompressHuffman(huffman: Huffman, length: Int, maxLength: Int = 75): String {
     var actualLength = length
     if (actualLength > maxLength) actualLength = maxLength
     val decompressed = ByteArray(256)
@@ -23,7 +23,7 @@ fun ByteArray.fromHuffman(huffman: Huffman, length: Int, maxLength: Int = 75): S
     return String(decompressed, 0, actualLength)
 }
 
-fun String.toHuffman(huffman: Huffman, dest: ByteArray): Int = huffman.compress(this, dest)
+fun String.compressHuffman(huffman: Huffman, dest: ByteArray): Int = huffman.compress(this, dest)
 
 fun ByteArray.fromXTEA(rounds: Int, keys: IntArray = IntArray(4), offset: Int = 0): ByteArray = XTEA(rounds, keys, offset).from(
     ByteBuffer.wrap(this)

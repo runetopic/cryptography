@@ -1,5 +1,7 @@
 package com.runetopic.cryptography.huffman
 
+import com.runetopic.cryptography.decompressHuffman
+import com.runetopic.cryptography.compressHuffman
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -17,11 +19,9 @@ class HuffmanTest {
         val input = "Testing huffman compression"
         val huffman = Huffman(sizes = sizes)
         val compressed = ByteArray(256)
-        val offset = huffman.compress(input, compressed)
+        val offset = input.compressHuffman(huffman, compressed)
         assertEquals(16, offset)
-        val decompressed = ByteArray(256)
-        huffman.decompress(compressed, decompressed, input.length)
-        val decompressedString = String(decompressed, 0, input.length)
+        val decompressedString = compressed.decompressHuffman(huffman, input.length)
         assertEquals(input, decompressedString)
     }
 
