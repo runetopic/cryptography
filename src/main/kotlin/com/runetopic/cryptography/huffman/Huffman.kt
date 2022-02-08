@@ -1,6 +1,10 @@
 package com.runetopic.cryptography.huffman
 
-class Huffman(private val sizes: ByteArray) {
+import com.runetopic.cryptography.ICryptography
+
+class Huffman(
+    private val sizes: ByteArray
+) : ICryptography<ByteArray, Int> {
     private var masks: IntArray
     private var keys: IntArray
 
@@ -263,5 +267,13 @@ class Huffman(private val sizes: ByteArray) {
 
             return i_8 + 1 - i_2
         }
+    }
+
+    override fun from(src: ByteArray): Int {
+        TODO("Not yet implemented")
+    }
+
+    override fun to(src: ByteArray): Int {
+        TODO("Not yet implemented")
     }
 }
