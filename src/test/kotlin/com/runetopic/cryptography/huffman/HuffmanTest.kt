@@ -1,7 +1,7 @@
 package com.runetopic.cryptography.huffman
 
-import com.runetopic.cryptography.decompressHuffman
 import com.runetopic.cryptography.compressHuffman
+import com.runetopic.cryptography.decompressHuffman
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals

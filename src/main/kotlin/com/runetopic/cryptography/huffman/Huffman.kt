@@ -1,90 +1,81 @@
 package com.runetopic.cryptography.huffman
 
-import com.runetopic.cryptography.ICryptography
-
 class Huffman(
     private val sizes: ByteArray
-) : ICryptography<ByteArray, Int> {
-    private var masks: IntArray
-    private var keys: IntArray
+) {
+    private var masks: IntArray = IntArray(sizes.size)
+    private var keys: IntArray = IntArray(8)
 
     init {
-        val i_2 = sizes.size
-        masks = IntArray(i_2)
-        val ints_3 = IntArray(33)
-        keys = IntArray(8)
-        var i_4 = 0
+        val values = IntArray(33)
+        var key = 0
 
-        for (i_5 in 0 until i_2) {
-            val b_6 = sizes[i_5]
-            if (b_6.toInt() != 0) {
-                val i_7 = 1 shl 32 - b_6
-                val i_8 = ints_3[b_6.toInt()]
-                masks[i_5] = i_8
-                val i_9: Int
-                var i_10: Int
-                var i_11: Int
-                var i_12: Int
-                if (i_8 and i_7 != 0)
-                    i_9 = ints_3[b_6 - 1]
-                else {
-                    i_9 = i_8 or i_7
+        for (index in sizes.indices) {
+            val size = sizes[index]
+            if (size.toInt() == 0) continue
+            val i_7 = 1 shl 32 - size
+            val value = values[size.toInt()]
+            masks[index] = value
+            val i_9: Int
+            var keyIndex: Int
+            var count: Int
+            var i_12: Int
+            if (value and i_7 != 0)
+                i_9 = values[size - 1]
+            else {
+                i_9 = value or i_7
 
-                    i_10 = b_6 - 1
-                    while (i_10 >= 1) {
-                        i_11 = ints_3[i_10]
-                        if (i_11 != i_8)
-                            break
+                keyIndex = size - 1
+                while (keyIndex >= 1) {
+                    count = values[keyIndex]
+                    if (count != value)
+                        break
 
-                        i_12 = 1 shl 32 - i_10
-                        if (i_11 and i_12 != 0) {
-                            ints_3[i_10] = ints_3[i_10 - 1]
-                            break
-                        }
-
-                        ints_3[i_10] = i_11 or i_12
-                        --i_10
-                    }
-                }
-
-                ints_3[b_6.toInt()] = i_9
-
-                i_10 = b_6 + 1
-                while (i_10 <= 32) {
-                    if (ints_3[i_10] == i_8)
-                        ints_3[i_10] = i_9
-                    i_10++
-                }
-
-                i_10 = 0
-
-                i_11 = 0
-                while (i_11 < b_6) {
-                    i_12 = Integer.MIN_VALUE.ushr(i_11)
-                    if (i_8 and i_12 != 0) {
-                        if (keys[i_10] == 0)
-                            keys[i_10] = i_4
-
-                        i_10 = keys[i_10]
-                    } else
-                        ++i_10
-
-                    if (i_10 >= keys.size) {
-                        val ints_13 = IntArray(keys.size * 2)
-
-                        for (i_14 in keys.indices)
-                            ints_13[i_14] = keys[i_14]
-
-                        keys = ints_13
+                    i_12 = 1 shl 32 - keyIndex
+                    if (count and i_12 != 0) {
+                        values[keyIndex] = values[keyIndex - 1]
+                        break
                     }
 
-                    i_11++
+                    values[keyIndex] = count or i_12
+                    --keyIndex
                 }
-
-                keys[i_10] = i_5.inv()
-                if (i_10 >= i_4)
-                    i_4 = i_10 + 1
             }
+
+            values[size.toInt()] = i_9
+
+            keyIndex = size + 1
+            while (keyIndex <= 32) {
+                if (values[keyIndex] == value)
+                    values[keyIndex] = i_9
+                keyIndex++
+            }
+
+            keyIndex = 0
+
+            count = 0
+            while (count < size) {
+                i_12 = Integer.MIN_VALUE.ushr(count)
+                if (value and i_12 != 0) {
+                    if (keys[keyIndex] == 0)
+                        keys[keyIndex] = key
+
+                    keyIndex = keys[keyIndex]
+                } else
+                    ++keyIndex
+
+                if (keyIndex >= keys.size) {
+                    val keysCopy = IntArray(keys.size * 2)
+                    keys.indices.forEach { keysCopy[it] = keys[it] }
+                    keys = keysCopy
+                }
+
+                count++
+            }
+
+            keys[keyIndex] = index.inv()
+            if (keyIndex >= key)
+                key = keyIndex + 1
         }
     }
 
@@ -94,14 +85,12 @@ class Huffman(
         val input = text.toByteArray()
 
         var bitpos = 0
-        for (pos in 0 until text.length) {
+        for (pos in text.indices) {
             val data = input[pos].toInt() and 255
-            val size = sizes[data]
+            val size = this.sizes[data]
             val mask = masks[data]
 
-            if (size.toInt() == 0) {
-                throw RuntimeException("No codeword for data value $data")
-            }
+            if (size.toInt() == 0) throw RuntimeException("Size is equal to zero for Data = $data")
 
             var remainder = bitpos and 7
             key = key and (-remainder shr 31)
@@ -267,13 +256,5 @@ class Huffman(
 
             return i_8 + 1 - i_2
         }
-    }
-
-    override fun from(src: ByteArray): Int {
-        TODO("Not yet implemented")
-    }
-
-    override fun to(src: ByteArray): Int {
-        TODO("Not yet implemented")
     }
 }
