@@ -7,11 +7,11 @@ plugins {
 dependencies {
     implementation(kotlin("stdlib"))
     testImplementation("org.jetbrains.kotlin:kotlin-test")
-    testImplementation("io.mockk:mockk:1.12.0")
+    testImplementation("io.mockk:mockk:1.12.2")
 }
 
 group = "com.runetopic.cryptography"
-version = "1.0.10-SNAPSHOT"
+version = "1.0.11-SNAPSHOT"
 
 java.sourceCompatibility = JavaVersion.VERSION_16
 java.targetCompatibility = JavaVersion.VERSION_16

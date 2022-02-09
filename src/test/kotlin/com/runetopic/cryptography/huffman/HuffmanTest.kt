@@ -16,11 +16,11 @@ class HuffmanTest {
 
     @Test
     fun testHuffman() {
-        val input = "Testing huffman compression"
+        val input = "A_DEAD_DAD_CEDED_A_BAD_BABE_A_BEADED_ABACA_BED"
         val huffman = Huffman(sizes = sizes)
         val compressed = ByteArray(256)
         val offset = input.compressHuffman(huffman, compressed)
-        assertEquals(16, offset)
+        assertEquals(60, offset)
         val decompressedString = compressed.decompressHuffman(huffman, input.length)
         assertEquals(input, decompressedString)
     }
