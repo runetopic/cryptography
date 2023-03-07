@@ -11,17 +11,17 @@ dependencies {
 }
 
 group = "com.runetopic.cryptography"
-version = "1.0.11-SNAPSHOT"
+version = "1.1.4-SNAPSHOT"
 
-java.sourceCompatibility = JavaVersion.VERSION_16
-java.targetCompatibility = JavaVersion.VERSION_16
-
-tasks {
-    compileKotlin {
-        kotlinOptions.jvmTarget = "1.8"
+kotlin {
+    jvmToolchain {
+        languageVersion.set(JavaLanguageVersion.of(JavaVersion.VERSION_11.majorVersion))
     }
-    compileTestKotlin {
-        kotlinOptions.jvmTarget = "1.8"
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(JavaVersion.VERSION_11.majorVersion))
     }
 }
 
