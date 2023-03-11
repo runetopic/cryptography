@@ -4,48 +4,64 @@ class Huffman(
     private val sizes: ByteArray,
     private val limit: Int
 ) : HuffmanAlgorithm {
-    private var masks: IntArray = IntArray(sizes.size)
-    private var keys: IntArray = IntArray(8)
+    private var encoded: IntArray = IntArray(sizes.size)
+    private var decoded: IntArray = IntArray(8)
 
     init {
-        val values = IntArray(33)
-        var currIndex = 0
+        // Sets up the encoded and decoded IntArrays.
+        init(sizes.size)
+    }
 
-        repeat(sizes.size) {
-            val size = sizes[it]
-            if (size.toInt() == 0) return@repeat
-            val x = 1 shl 32 - size
-            val mask = values[size.toInt()]
-            masks[it] = mask
-            val value = if (mask and x != 0) {
-                values[size - 1]
-            } else {
-                values.shift(mask, size - 1)
-                mask or x
-            }
-            values[size.toInt()] = value
-            values.comb(mask, size + 1, value)
-            var keyIndex = 0
-            repeat(size.toInt()) { i ->
-                if (mask and Integer.MIN_VALUE.ushr(i) != 0) {
-                    if (keys[keyIndex] == 0) {
-                        keys[keyIndex] = currIndex
-                    }
-                    keyIndex = keys[keyIndex]
-                } else {
-                    ++keyIndex
-                }
-                if (keyIndex >= keys.size) {
-                    val keysCopy = IntArray(keys.size * 2)
-                    keys.indices.forEach { index -> keysCopy[index] = keys[index] }
-                    keys = keysCopy
-                }
-            }
-            keys[keyIndex] = it.inv()
-            if (keyIndex >= currIndex) {
-                currIndex = keyIndex + 1
-            }
+    private tailrec fun init(
+        limit: Int,
+        array: IntArray = IntArray(33),
+        segment: Int = 0,
+        index: Int = 0
+    ) {
+        if (index == limit) return
+        val size = sizes[index]
+        if (size.toInt() == 0) return
+        val shift = 1 shl 32 - size
+        val mask = array[size.toInt()]
+        encoded[index] = mask
+        val value = if (mask and shift != 0) {
+            array[size - 1]
+        } else {
+            array.shift(mask, size - 1)
+            mask or shift
         }
+        array[size.toInt()] = value
+        array.comb(mask, size + 1, value)
+        return init(limit, array, initKeys(index, mask, size.toInt(), segment), index + 1)
+    }
+
+    private tailrec fun initKeys(
+        sizeIndex: Int,
+        mask: Int,
+        limit: Int,
+        currIndex: Int,
+        keyIndex: Int = 0,
+        index: Int = 0
+    ): Int {
+        if (index == limit) {
+            decoded[keyIndex] = sizeIndex.inv()
+            return if (keyIndex >= currIndex) keyIndex + 1 else currIndex
+        }
+        var nextKeyIndex = keyIndex
+        if (mask and Integer.MIN_VALUE.ushr(index) != 0) {
+            if (decoded[keyIndex] == 0) {
+                decoded[keyIndex] = currIndex
+            }
+            nextKeyIndex = decoded[keyIndex]
+        } else {
+            ++nextKeyIndex
+        }
+        if (nextKeyIndex >= decoded.size) {
+            val nextKeys = IntArray(decoded.size * 2)
+            decoded.indices.forEach { nextKeys[it] = decoded[it] }
+            decoded = nextKeys
+        }
+        return initKeys(sizeIndex, mask, limit, currIndex, nextKeyIndex, index + 1)
     }
 
     /**
@@ -83,7 +99,7 @@ class Huffman(
         val nextKey = output.putEncodedValue(
             limit = (-1 + (remainder - -size) shr 3) + readPosition,
             remainder = remainder + 24,
-            mask = masks[byte],
+            mask = encoded[byte],
             startKey = key and (-remainder shr 31),
             readPosition = readPosition
         )
@@ -121,11 +137,11 @@ class Huffman(
         writePosition: Int
     ): Int {
         val nextReadPosition = when {
-            mask == -1 && byte < 0 -> keys[readPosition]
-            mask != -1 && byte and mask != 0 -> keys[readPosition]
+            mask == -1 && byte < 0 -> decoded[readPosition]
+            mask != -1 && byte and mask != 0 -> decoded[readPosition]
             else -> readPosition + 1
         }
-        val key = keys[nextReadPosition]
+        val key = decoded[nextReadPosition]
         if (key < 0) {
             this[writePosition] = key.inv().toByte()
             return 0
