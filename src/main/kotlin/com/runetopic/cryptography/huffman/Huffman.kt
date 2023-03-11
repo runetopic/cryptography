@@ -138,7 +138,13 @@ class Huffman(
         return decompress(compressed, decompressed, decompressedLength, decompressedIndex, keyIndex, curr + 1)
     }
 
-    private fun ByteArray.checkInverseAndApplyNextKey(index: Int, compressedByte: Int, mask: Int, keyIndex: Int, decompressedIndex: Int): Int {
+    private fun ByteArray.checkInverseAndApplyNextKey(
+        index: Int,
+        compressedByte: Int,
+        mask: Int,
+        keyIndex: Int,
+        decompressedIndex: Int
+    ): Int {
         val nextIndex = when {
             index == 0 && compressedByte < 0 -> keys[keyIndex]
             index != 0 && compressedByte and mask != 0 -> keys[keyIndex]
