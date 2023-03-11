@@ -131,36 +131,10 @@ class Huffman(
         var decompressedIndex = currDecompressedIndex
         var keyIndex = currKeyIndex
 
-        keyIndex = decompressed.checkKey(compressedByte, 0, keyIndex, decompressedIndex).also {
-            if (it == 0 && decompressedIndex++ >= decompressedLength) return curr + 1
-        }
-
-        keyIndex = decompressed.checkKey(compressedByte, 0x40, keyIndex, decompressedIndex).also {
-            if (it == 0 && decompressedIndex++ >= decompressedLength) return curr + 1
-        }
-
-        keyIndex = decompressed.checkKey(compressedByte, 0x20, keyIndex, decompressedIndex).also {
-            if (it == 0 && decompressedIndex++ >= decompressedLength) return curr + 1
-        }
-
-        keyIndex = decompressed.checkKey(compressedByte, 0x10, keyIndex, decompressedIndex).also {
-            if (it == 0 && decompressedIndex++ >= decompressedLength) return curr + 1
-        }
-
-        keyIndex = decompressed.checkKey(compressedByte, 0x8, keyIndex, decompressedIndex).also {
-            if (it == 0 && decompressedIndex++ >= decompressedLength) return curr + 1
-        }
-
-        keyIndex = decompressed.checkKey(compressedByte, 0x4, keyIndex, decompressedIndex).also {
-            if (it == 0 && decompressedIndex++ >= decompressedLength) return curr + 1
-        }
-
-        keyIndex = decompressed.checkKey(compressedByte, 0x2, keyIndex, decompressedIndex).also {
-            if (it == 0 && decompressedIndex++ >= decompressedLength) return curr + 1
-        }
-
-        keyIndex = decompressed.checkKey(compressedByte, 0x1, keyIndex, decompressedIndex).also {
-            if (it == 0 && decompressedIndex++ >= decompressedLength) return curr + 1
+        intArrayOf(0, 0x40, 0x20, 0x10, 0x8, 0x4, 0x2, 0x1).forEach { mask ->
+            keyIndex = decompressed.checkKey(compressedByte, mask, keyIndex, decompressedIndex).also {
+                if (it == 0 && decompressedIndex++ >= decompressedLength) return curr + 1
+            }
         }
 
         return decompress(
