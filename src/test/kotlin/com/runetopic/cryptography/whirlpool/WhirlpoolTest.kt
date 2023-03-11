@@ -23,7 +23,7 @@ class WhirlpoolTest {
 
     @Test
     fun `test whirlpool`() {
-        val mock = mockk<IWhirlpool>(relaxed = true)
+        val mock = mockk<WhirlpoolAlgorithm>(relaxed = true)
         every { mock.getRounds() } returns 10
         every { mock.getSize() } returns 64
         assertEquals(whirlpool.contentToString(), input.toWhirlpool(mock.getRounds(), mock.getSize()).contentToString())
@@ -31,7 +31,7 @@ class WhirlpoolTest {
 
     @Test
     fun `test quick brown fox jumps over the lazy dog`() {
-        val mock = mockk<IWhirlpool>(relaxed = true)
+        val mock = mockk<WhirlpoolAlgorithm>(relaxed = true)
         every { mock.getRounds() } returns 10
         every { mock.getSize() } returns 64
 
@@ -44,7 +44,7 @@ class WhirlpoolTest {
 
     @Test
     fun `test quick brown fox jumps over the lazy eog`() {
-        val mock = mockk<IWhirlpool>(relaxed = true)
+        val mock = mockk<WhirlpoolAlgorithm>(relaxed = true)
         every { mock.getRounds() } returns 10
         every { mock.getSize() } returns 64
 
@@ -57,7 +57,7 @@ class WhirlpoolTest {
 
     @Test
     fun `test zero length`() {
-        val mock = mockk<IWhirlpool>(relaxed = true)
+        val mock = mockk<WhirlpoolAlgorithm>(relaxed = true)
         every { mock.getRounds() } returns 10
         every { mock.getSize() } returns 64
 

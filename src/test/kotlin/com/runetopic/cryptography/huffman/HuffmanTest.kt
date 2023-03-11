@@ -16,13 +16,11 @@ class HuffmanTest {
 
     @Test
     fun testHuffman() {
-        val input = "A_DEAD_DAD_CEDED_A_BAD_BABE_A_BEADED_ABACA_BED"
-        val huffman = Huffman(sizes = sizes)
-        val compressed = ByteArray(256)
-        val offset = input.compressHuffman(huffman, compressed)
-        assertEquals(60, offset)
-        val decompressedString = compressed.decompressHuffman(huffman, input.length)
-        assertEquals(input, decompressedString)
+        val input = "A_DEAD_DAD_CEDED_A_BAD_BABE_A_BEADED_ABACA_BED".toByteArray()
+        val huffman = Huffman(sizes, 75)
+        val compressed = input.compressHuffman(huffman)
+        val decompressed = compressed.decompressHuffman(huffman, input.size)
+        assertEquals(String(input), String(decompressed))
     }
 
     private companion object {

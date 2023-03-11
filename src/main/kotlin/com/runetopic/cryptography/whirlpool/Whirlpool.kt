@@ -6,7 +6,7 @@ package com.runetopic.cryptography.whirlpool
 class Whirlpool(
     private val rounds: Int,
     private val size: Int
-) : IWhirlpool {
+) : WhirlpoolAlgorithm {
     private val block = Array(8) { LongArray(256) }
     private val blockRounds = LongArray(rounds + 1)
     private val hash = LongArray(8)
@@ -15,27 +15,6 @@ class Whirlpool(
 
     private var position = 0
     private var digestBits = 0
-
-    override fun getRounds(): Int = rounds
-    override fun getSize(): Int = size
-    override fun getBlock(): Array<LongArray> = block
-    override fun getBlockRounds(): LongArray = blockRounds
-    override fun getHash(): LongArray = hash
-    override fun getBuffer(): ByteArray = buffer
-    override fun getBitSize(): ByteArray = bitSize
-
-    override fun getPosition(): Int = position
-    override fun setPosition(position: Int) {
-        this.position = position
-    }
-
-    override fun getDigestBits(): Int = digestBits
-    override fun setDigestBits(digestBits: Int) {
-        this.digestBits = digestBits
-    }
-
-    override fun from(src: ByteArray): ByteArray = throw IllegalAccessError("Whirlpool is a one-way function.")
-    override fun to(src: ByteArray): ByteArray = hash(src, size)
 
     init {
         val sbox = intArrayOf(
@@ -57,45 +36,80 @@ class Whirlpool(
             0x163A, 0x6909, 0x70B6, 0xD0ED, 0xCC42, 0x98A4, 0x285C, 0xF886
         )
 
-        (0 until sbox.size * 2).forEach {
-            val code = sbox[it / 2].toLong()
+        repeat(sbox.size * 2) {
+            initBlock(sbox[it / 2].toLong(), it)
+            initBlockRounds()
+        }
+    }
 
-            val v1 = if ((it and 1) == 0) code ushr 8 else code and 0xFF
+    private tailrec fun initBlockRounds(
+        round: Int = 1
+    ) {
+        if (round == rounds + 1) return
+        if (round == 1) {
+            blockRounds[0] = 0
+        }
+        val offset = 8 * (round - 1)
+        blockRounds[round] = (
+            /******/(block[0][offset/**/] and -0x100000000000000L)
+                xor (block[1][offset + 1] and 0x00FF000000000000L)
+                xor (block[2][offset + 2] and 0x0000FF0000000000L)
+                xor (block[3][offset + 3] and 0x000000FF00000000L)
+                xor (block[4][offset + 4] and 0x00000000FF000000L)
+                xor (block[5][offset + 5] and 0x0000000000FF0000L)
+                xor (block[6][offset + 6] and 0x000000000000FF00L)
+                xor (block[7][offset + 7] and 0x00000000000000FFL)
+            )
+        return initBlockRounds(round + 1)
+    }
+
+    private tailrec fun initBlock(
+        code: Long,
+        offset: Int,
+        index: Int = 1,
+        limit: Int = 8
+    ) {
+        if (index == limit) return
+        if (index == 1) {
+            val v1 = if ((offset and 1) == 0) code ushr 8 else code and 0xFF
             val v2 = maskWithReductionPolynomial(v1 shl 1)
             val v4 = maskWithReductionPolynomial(v2 shl 1)
             val v5 = v4 xor v1
             val v8 = maskWithReductionPolynomial(v4 shl 1)
             val v9 = v8 xor v1
-
-            block[0][it] = (
-                (v1 shl 56)
-                    or (v1 shl 48)
-                    or (v4 shl 40)
-                    or (v1 shl 32)
-                    or (v8 shl 24)
-                    or (v5 shl 16)
-                    or (v2 shl 8)
-                    or v9
+            block[0][offset] = (
+                /*********/(v1 shl 56)
+                    /******/or (v1 shl 48)
+                    /******/or (v4 shl 40)
+                    /******/or (v1 shl 32)
+                    /******/or (v8 shl 24)
+                    /******/or (v5 shl 16)
+                    /******/or (v2 shl 8)
+                    /******/or v9
                 )
-
-            (1 until 8).forEach { index ->
-                block[index][it] = ((block[index - 1][it] ushr 8) or (block[index - 1][it] shl 56))
-            }
-
-            blockRounds[0] = 0
-            (1..rounds).forEach { round ->
-                val offset = 8 * (round - 1)
-                blockRounds[round] = (
-                    /**/(block[0][offset/**/] and -0x100000000000000L)
-                        xor (block[1][offset + 1] and 0x00FF000000000000L)
-                        xor (block[2][offset + 2] and 0x0000FF0000000000L)
-                        xor (block[3][offset + 3] and 0x000000FF00000000L)
-                        xor (block[4][offset + 4] and 0x00000000FF000000L)
-                        xor (block[5][offset + 5] and 0x0000000000FF0000L)
-                        xor (block[6][offset + 6] and 0x000000000000FF00L)
-                        xor (block[7][offset + 7] and 0x00000000000000FFL)
-                    )
-            }
         }
+        block[index][offset] = ((block[index - 1][offset] ushr 8) or (block[index - 1][offset] shl 56))
+        return initBlock(code, offset, index + 1, limit)
     }
+
+    override fun getRounds(): Int = rounds
+    override fun getSize(): Int = size
+    override fun getBlock(): Array<LongArray> = block
+    override fun getBlockRounds(): LongArray = blockRounds
+    override fun getHash(): LongArray = hash
+    override fun getBuffer(): ByteArray = buffer
+    override fun getBitSize(): ByteArray = bitSize
+
+    override fun getPosition(): Int = position
+    override fun setPosition(position: Int) {
+        this.position = position
+    }
+
+    override fun getDigestBits(): Int = digestBits
+    override fun setDigestBits(digestBits: Int) {
+        this.digestBits = digestBits
+    }
+
+    override fun from(src: ByteArray): ByteArray = throw IllegalAccessError("Whirlpool is a one-way function.")
+    override fun to(src: ByteArray): ByteArray = hash(src, size)
 }

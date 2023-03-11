@@ -1,7 +1,9 @@
 @file:JvmName("CryptoExtensions")
+
 package com.runetopic.cryptography
 
 import com.runetopic.cryptography.huffman.Huffman
+import com.runetopic.cryptography.huffman.HuffmanInput
 import com.runetopic.cryptography.isaac.ISAAC
 import com.runetopic.cryptography.whirlpool.Whirlpool
 import com.runetopic.cryptography.xtea.XTEA
@@ -10,31 +12,35 @@ import java.nio.ByteBuffer
 /**
  * @author Jordan Abraham
  */
-infix fun Int.downUntil(to: Int): IntProgression {
-    if (to >= Int.MAX_VALUE) return IntRange.EMPTY
-    return this downTo (to + 1)
-}
 
-fun ByteArray.decompressHuffman(huffman: Huffman, length: Int, maxLength: Int = 75): String {
-    var actualLength = length
-    if (actualLength > maxLength) actualLength = maxLength
-    val decompressed = ByteArray(256)
-    huffman.decompress(this, decompressed, actualLength)
-    return String(decompressed, 0, actualLength)
-}
+/**
+ * @see Huffman.from(HuffmanInput)
+ */
+fun ByteArray.decompressHuffman(huffman: Huffman, size: Int): ByteArray = huffman.from(HuffmanInput(this, size))
 
-fun String.compressHuffman(huffman: Huffman, dest: ByteArray): Int = huffman.compress(this, dest)
+/**
+ * @see Huffman.to(HuffmanInput)
+ */
+fun ByteArray.compressHuffman(huffman: Huffman): ByteArray = huffman.to(HuffmanInput(this, -1))
 
-fun ByteArray.fromXTEA(rounds: Int, keys: IntArray = IntArray(4), offset: Int = 0): ByteArray = XTEA(rounds, keys, offset).from(
-    ByteBuffer.wrap(this)
-)
-fun ByteArray.toXTEA(rounds: Int, keys: IntArray = IntArray(4), offset: Int = 0): ByteArray = XTEA(rounds, keys, offset).to(
-    ByteBuffer.wrap(this)
-)
+/**
+ * @see XTEA.from(ByteArray).
+ */
+fun ByteArray.fromXTEA(rounds: Int, keys: IntArray = IntArray(4)): ByteBuffer = XTEA(rounds, keys).from(this)
+
+/**
+ * @see XTEA.to(ByteArray).
+ */
+fun ByteArray.toXTEA(rounds: Int, keys: IntArray = IntArray(4)): ByteBuffer = XTEA(rounds, keys).to(this)
 
 fun ByteArray.toWhirlpool(rounds: Int = 10, size: Int = 64): ByteArray = Whirlpool(rounds, size).to(this)
 
 fun IntArray.toISAAC() = ISAAC().to(this)
+
+internal infix fun Int.downUntil(to: Int): IntProgression {
+    if (to >= Int.MAX_VALUE) return IntRange.EMPTY
+    return this downTo (to + 1)
+}
 
 internal fun ByteArray.g8(offset: Int): Long {
     return (

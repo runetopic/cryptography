@@ -1,260 +1,202 @@
 package com.runetopic.cryptography.huffman
 
 class Huffman(
-    private val sizes: ByteArray
-) {
-    private var masks: IntArray = IntArray(sizes.size)
-    private var keys: IntArray = IntArray(8)
+    private val sizes: ByteArray,
+    private val limit: Int
+) : HuffmanAlgorithm {
+    private var encoded: IntArray = IntArray(sizes.size)
+    private var decoded: IntArray = IntArray(8)
 
     init {
-        val values = IntArray(33)
-        var key = 0
-
-        for (index in sizes.indices) {
-            val size = sizes[index]
-            if (size.toInt() == 0) continue
-            val i_7 = 1 shl 32 - size
-            val value = values[size.toInt()]
-            masks[index] = value
-            val i_9: Int
-            var keyIndex: Int
-            var count: Int
-            var i_12: Int
-            if (value and i_7 != 0)
-                i_9 = values[size - 1]
-            else {
-                i_9 = value or i_7
-
-                keyIndex = size - 1
-                while (keyIndex >= 1) {
-                    count = values[keyIndex]
-                    if (count != value)
-                        break
-
-                    i_12 = 1 shl 32 - keyIndex
-                    if (count and i_12 != 0) {
-                        values[keyIndex] = values[keyIndex - 1]
-                        break
-                    }
-
-                    values[keyIndex] = count or i_12
-                    --keyIndex
-                }
-            }
-
-            values[size.toInt()] = i_9
-
-            keyIndex = size + 1
-            while (keyIndex <= 32) {
-                if (values[keyIndex] == value)
-                    values[keyIndex] = i_9
-                keyIndex++
-            }
-
-            keyIndex = 0
-
-            count = 0
-            while (count < size) {
-                i_12 = Integer.MIN_VALUE.ushr(count)
-                if (value and i_12 != 0) {
-                    if (keys[keyIndex] == 0)
-                        keys[keyIndex] = key
-
-                    keyIndex = keys[keyIndex]
-                } else
-                    ++keyIndex
-
-                if (keyIndex >= keys.size) {
-                    val keysCopy = IntArray(keys.size * 2)
-                    keys.indices.forEach { keysCopy[it] = keys[it] }
-                    keys = keysCopy
-                }
-
-                count++
-            }
-
-            keys[keyIndex] = index.inv()
-            if (keyIndex >= key)
-                key = keyIndex + 1
-        }
+        // Sets up the encoded and decoded IntArrays.
+        init(sizes.size)
     }
 
-    fun compress(text: String, output: ByteArray): Int {
-        var key = 0
+    private tailrec fun init(
+        limit: Int,
+        array: IntArray = IntArray(33),
+        segment: Int = 0,
+        index: Int = 0
+    ) {
+        if (index == limit) return
+        val size = sizes[index]
+        if (size.toInt() == 0) return
+        val shift = 1 shl 32 - size
+        val mask = array[size.toInt()]
+        encoded[index] = mask
+        val value = if (mask and shift != 0) {
+            array[size - 1]
+        } else {
+            array.shift(mask, size - 1)
+            mask or shift
+        }
+        array[size.toInt()] = value
+        array.comb(mask, size + 1, value)
+        return init(limit, array, initKeys(index, mask, size.toInt(), segment), index + 1)
+    }
 
-        val input = text.toByteArray()
+    private tailrec fun initKeys(
+        sizeIndex: Int,
+        mask: Int,
+        limit: Int,
+        currIndex: Int,
+        keyIndex: Int = 0,
+        index: Int = 0
+    ): Int {
+        if (index == limit) {
+            decoded[keyIndex] = sizeIndex.inv()
+            return if (keyIndex >= currIndex) keyIndex + 1 else currIndex
+        }
+        var nextKeyIndex = keyIndex
+        if (mask and Integer.MIN_VALUE.ushr(index) != 0) {
+            if (decoded[keyIndex] == 0) {
+                decoded[keyIndex] = currIndex
+            }
+            nextKeyIndex = decoded[keyIndex]
+        } else {
+            ++nextKeyIndex
+        }
+        if (nextKeyIndex >= decoded.size) {
+            val nextKeys = IntArray(decoded.size * 2)
+            decoded.indices.forEach { nextKeys[it] = decoded[it] }
+            decoded = nextKeys
+        }
+        return initKeys(sizeIndex, mask, limit, currIndex, nextKeyIndex, index + 1)
+    }
 
-        var bitpos = 0
-        for (pos in text.indices) {
-            val data = input[pos].toInt() and 255
-            val size = this.sizes[data]
-            val mask = masks[data]
+    /**
+     * Decompress a HuffmanInput with Huffman to an output ByteArray. This output can be directly wrapped into a String.
+     * The input ByteArray is from the packet data containing a Huffman compressed data.
+     * The input size is from the packet data containing the length of the data when decompressed.
+     * The output ByteArray is the Huffman decompressed data and is sliced from 0 until the inputted size.
+     * Please note the input size is limited to the limit set by your Huffman object using this.
+     */
+    override fun from(src: HuffmanInput): ByteArray = src.input.decompress(src.size.let { if (it > limit) limit else it })
 
-            if (size.toInt() == 0) throw RuntimeException("Size is equal to zero for Data = $data")
+    /**
+     * Compress a HuffmanInput with Huffman to an output ByteArray. This output can be directly wrapped into a String.
+     * The input ByteArray is the formatted String that you want to compress with Huffman.
+     * The output ByteArray is the Huffman compressed data that is sliced from 0 until the compressed data or the limit set by your Huffman object.
+     * Please note the compressed ByteArray output is limited to the limit set by your Huffman object using this.
+     */
+    override fun to(src: HuffmanInput): ByteArray = src.input.compress()
 
-            var remainder = bitpos and 7
-            key = key and (-remainder shr 31)
-            var offset = bitpos shr 3
-            bitpos += size.toInt()
-            val i_41_ = (-1 + (remainder - -size) shr 3) + offset
-            remainder += 24
-            key = key or mask.ushr(remainder)
-            output[offset] = key.toByte()
-            if (i_41_.inv() < offset.inv()) {
-                remainder -= 8
-                key = mask.ushr(remainder)
-                output[++offset] = key.toByte()
-                if (offset.inv() > i_41_.inv()) {
-                    remainder -= 8
-                    key = mask.ushr(remainder)
-                    output[++offset] = key.toByte()
-                    if (offset.inv() > i_41_.inv()) {
-                        remainder -= 8
-                        key = mask.ushr(remainder)
-                        output[++offset] = key.toByte()
-                        if (i_41_ > offset) {
-                            remainder -= 8
-                            key = mask shl -remainder
-                            output[++offset] = key.toByte()
-                        }
-                    }
+    private tailrec fun ByteArray.compress(
+        output: ByteArray = ByteArray(256),
+        key: Int = 0,
+        position: Int = 0,
+        index: Int = 0
+    ): ByteArray {
+        if (index == size) {
+            // Slice the output from 0 until the size of this compressed data limited by the limit property of this object.
+            return output.sliceArray(0 until (7 + position shr 3).let { if (it > limit) limit else it })
+        }
+        val byte = this[index].toInt() and 0xFF
+        val size = sizes[byte]
+        if (size.toInt() == 0) throw RuntimeException("Size is equal to zero for Data = $byte")
+        val remainder = position and 7
+        val readPosition = position shr 3
+        val nextKey = output.putEncodedValue(
+            limit = (-1 + (remainder - -size) shr 3) + readPosition,
+            remainder = remainder + 24,
+            mask = encoded[byte],
+            startKey = key and (-remainder shr 31),
+            readPosition = readPosition
+        )
+        return compress(output, nextKey, position + size.toInt(), index + 1)
+    }
+
+    private tailrec fun ByteArray.decompress(
+        limit: Int,
+        output: ByteArray = ByteArray(256),
+        currentWritePosition: Int = 0,
+        currentReadPosition: Int = 0,
+        index: Int = 0
+    ): ByteArray {
+        if (limit == 0) return ByteArray(0)
+        val byte = this[index].toInt()
+
+        var writePosition = currentWritePosition
+        var readPosition = currentReadPosition
+
+        repeat(8) { x ->
+            readPosition = output.putDecodedValue(byte, if (x == 0) -1 else 64 shr (x - 1), readPosition, writePosition).also { pos ->
+                if (pos == 0 && ++writePosition >= limit) {
+                    // Slice the output from 0 until the size set by the input HuffmanInput limited by this Huffman object limit property.
+                    return output.sliceArray(0 until limit)
                 }
             }
         }
-
-        return 7 + bitpos shr 3
+        return decompress(limit, output, writePosition, readPosition, index + 1)
     }
 
-    fun decompress(compressed: ByteArray, decompressed: ByteArray, decompressedLength: Int): Int {
-        var decompressedLen = decompressedLength
-        val i_2 = 0
-        var i_4 = 0
-        if (decompressedLength == 0)
+    private fun ByteArray.putDecodedValue(
+        byte: Int,
+        mask: Int,
+        readPosition: Int,
+        writePosition: Int
+    ): Int {
+        val nextReadPosition = when {
+            mask == -1 && byte < 0 -> decoded[readPosition]
+            mask != -1 && byte and mask != 0 -> decoded[readPosition]
+            else -> readPosition + 1
+        }
+        val key = decoded[nextReadPosition]
+        if (key < 0) {
+            this[writePosition] = key.inv().toByte()
             return 0
-        else {
-            var i_7 = 0
-            decompressedLen += i_4
-            var i_8 = i_2
-
-            while (true) {
-                val b_9 = compressed[i_8]
-                if (b_9 < 0)
-                    i_7 = keys[i_7]
-                else
-                    ++i_7
-
-                var i_10: Int
-                i_10 = keys[i_7]
-                if (i_10 < 0) {
-                    decompressed[i_4++] = i_10.inv().toByte()
-                    if (i_4 >= decompressedLength)
-                        break
-
-                    i_7 = 0
-                }
-
-                if (b_9.toInt() and 0x40 != 0)
-                    i_7 = keys[i_7]
-                else
-                    ++i_7
-
-                i_10 = keys[i_7]
-                if (i_10 < 0) {
-                    decompressed[i_4++] = i_10.inv().toByte()
-                    if (i_4 >= decompressedLength)
-                        break
-
-                    i_7 = 0
-                }
-
-                if (b_9.toInt() and 0x20 != 0)
-                    i_7 = keys[i_7]
-                else
-                    ++i_7
-
-                i_10 = keys[i_7]
-                if (i_10 < 0) {
-                    decompressed[i_4++] = i_10.inv().toByte()
-                    if (i_4 >= decompressedLength)
-                        break
-
-                    i_7 = 0
-                }
-
-                if (b_9.toInt() and 0x10 != 0)
-                    i_7 = keys[i_7]
-                else
-                    ++i_7
-
-                i_10 = keys[i_7]
-                if (i_10 < 0) {
-                    decompressed[i_4++] = i_10.inv().toByte()
-                    if (i_4 >= decompressedLength)
-                        break
-
-                    i_7 = 0
-                }
-
-                if (b_9.toInt() and 0x8 != 0)
-                    i_7 = keys[i_7]
-                else
-                    ++i_7
-
-                i_10 = keys[i_7]
-                if (i_10 < 0) {
-                    decompressed[i_4++] = i_10.inv().toByte()
-                    if (i_4 >= decompressedLength)
-                        break
-
-                    i_7 = 0
-                }
-
-                if (b_9.toInt() and 0x4 != 0)
-                    i_7 = keys[i_7]
-                else
-                    ++i_7
-
-                i_10 = keys[i_7]
-                if (i_10 < 0) {
-                    decompressed[i_4++] = i_10.inv().toByte()
-                    if (i_4 >= decompressedLength)
-                        break
-
-                    i_7 = 0
-                }
-
-                if (b_9.toInt() and 0x2 != 0)
-                    i_7 = keys[i_7]
-                else
-                    ++i_7
-
-                i_10 = keys[i_7]
-                if (i_10 < 0) {
-                    decompressed[i_4++] = i_10.inv().toByte()
-                    if (i_4 >= decompressedLength)
-                        break
-
-                    i_7 = 0
-                }
-
-                if (b_9.toInt() and 0x1 != 0)
-                    i_7 = keys[i_7]
-                else
-                    ++i_7
-
-                i_10 = keys[i_7]
-                if (i_10 < 0) {
-                    decompressed[i_4++] = i_10.inv().toByte()
-                    if (i_4 >= decompressedLength)
-                        break
-
-                    i_7 = 0
-                }
-
-                ++i_8
-            }
-
-            return i_8 + 1 - i_2
         }
+        return nextReadPosition
+    }
+
+    private tailrec fun ByteArray.putEncodedValue(
+        limit: Int,
+        remainder: Int,
+        mask: Int,
+        startKey: Int,
+        readPosition: Int,
+        segment: Int = 0
+    ): Int = when (segment) {
+        0 -> {
+            val next = startKey or (mask ushr remainder)
+            this[readPosition] = next.toByte()
+            if (limit.inv() >= readPosition.inv()) next
+            else putEncodedValue(limit, remainder - 8, mask, startKey, readPosition + 1, 1)
+        }
+        4 -> {
+            val next = mask shl -remainder
+            this[readPosition] = next.toByte()
+            next
+        }
+        else -> {
+            val next = mask ushr remainder
+            this[readPosition] = next.toByte()
+            if (segment == 3 && limit <= readPosition) next
+            else if (readPosition.inv() <= limit.inv()) next
+            else putEncodedValue(limit, remainder - 8, mask, startKey, readPosition + 1, segment + 1)
+        }
+    }
+
+    private tailrec fun IntArray.shift(mask: Int, index: Int) {
+        if (index == 0) return
+        val value = this[index]
+        if (value != mask) return
+
+        val x = 1 shl 32 - index
+        if (value and x != 0) {
+            this[index] = this[index - 1]
+            return
+        }
+
+        this[index] = value or x
+        return shift(mask, index - 1)
+    }
+
+    private tailrec fun IntArray.comb(mask: Int, index: Int, x: Int) {
+        if (index > 32) return
+        if (this[index] == mask) {
+            this[index] = x
+        }
+        return comb(mask, index + 1, x)
     }
 }

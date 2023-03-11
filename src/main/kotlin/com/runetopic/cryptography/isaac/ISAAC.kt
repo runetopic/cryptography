@@ -3,7 +3,7 @@ package com.runetopic.cryptography.isaac
 /**
  * @author Jordan Abraham
  */
-class ISAAC : IISAAC {
+class ISAAC : ISAACAlgorithm {
     private val results = IntArray(SIZE)
     private val mem = IntArray(SIZE)
 
@@ -32,8 +32,8 @@ class ISAAC : IISAAC {
     override fun from(src: IntArray): ISAAC = throw IllegalAccessError("ISAAC is a one-way function.")
     override fun to(src: IntArray): ISAAC {
         src.copyInto(results)
-        (0..3).forEach { mix(true, it) }
-        (0 until SIZE step 8).forEach {
+        repeat(4) { mix(true, it) }
+        for (it in 0 until SIZE step 8) {
             a += results[it]
             b += results[it + 1]
             c += results[it + 2]
@@ -44,7 +44,7 @@ class ISAAC : IISAAC {
             h += results[it + 7]
             mix(false, it)
         }
-        (0 until SIZE step 8).forEach {
+        for (it in 0 until SIZE step 8) {
             a += mem[it]
             b += mem[it + 1]
             c += mem[it + 2]
@@ -69,7 +69,7 @@ class ISAAC : IISAAC {
         f = f xor (g ushr 4); /****/a += f; g += h
         g = g xor (h shl 8); /*****/b += g; h += a
         h = h xor (a ushr 9); /****/c += h; a += b
-        if (firstPass.not()) p8(position)
+        if (!firstPass) p8(position)
     }
 
     private fun p8(position: Int) {
@@ -85,7 +85,7 @@ class ISAAC : IISAAC {
 
     private fun random() {
         randb += ++randc
-        (0 until SIZE).forEach { pos ->
+        repeat(SIZE) { pos ->
             val position = mem[pos]
             when (pos and 3) {
                 0 -> randa = randa xor (randa shl 13)
