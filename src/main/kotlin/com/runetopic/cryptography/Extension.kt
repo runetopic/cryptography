@@ -19,7 +19,7 @@ fun ByteArray.decompressHuffman(huffman: Huffman, length: Int, maxLength: Int = 
     return String(decompressed, 0, actualLength)
 }
 
-fun String.compressHuffman(huffman: Huffman, dest: ByteArray): Int = huffman.compress(this, dest)
+fun String.compressHuffman(huffman: Huffman, dest: ByteArray): Int = huffman.compress(toByteArray(), dest)
 
 /**
  * @see XTEA.from(ByteArray).
