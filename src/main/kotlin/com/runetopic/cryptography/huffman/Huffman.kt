@@ -92,26 +92,22 @@ class Huffman(
             remainder += 24
             key = key or mask.ushr(remainder)
             output[offset] = key.toByte()
-            if (inverse.inv() < offset.inv()) {
-                remainder -= 8
-                key = mask.ushr(remainder)
-                output[++offset] = key.toByte()
-                if (offset.inv() > inverse.inv()) {
-                    remainder -= 8
-                    key = mask.ushr(remainder)
-                    output[++offset] = key.toByte()
-                    if (offset.inv() > inverse.inv()) {
-                        remainder -= 8
-                        key = mask.ushr(remainder)
-                        output[++offset] = key.toByte()
-                        if (inverse > offset) {
-                            remainder -= 8
-                            key = mask shl -remainder
-                            output[++offset] = key.toByte()
-                        }
-                    }
-                }
-            }
+            if (inverse.inv() >= offset.inv()) continue
+            remainder -= 8
+            key = mask.ushr(remainder)
+            output[++offset] = key.toByte()
+            if (offset.inv() <= inverse.inv()) continue
+            remainder -= 8
+            key = mask.ushr(remainder)
+            output[++offset] = key.toByte()
+            if (offset.inv() <= inverse.inv()) continue
+            remainder -= 8
+            key = mask.ushr(remainder)
+            output[++offset] = key.toByte()
+            if (inverse <= offset) continue
+            remainder -= 8
+            key = mask shl -remainder
+            output[++offset] = key.toByte()
         }
 
         return 7 + bitpos shr 3
