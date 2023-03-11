@@ -87,8 +87,7 @@ class Huffman(
         repeat(8) { x ->
             readPosition = output.putKey(byte, if (x == 0) -1 else 64 shr (x - 1), readPosition, writePosition).also {
                 if (it == 0) {
-                    writePosition++
-                    if (writePosition >= limit) return index + 1
+                    if (++writePosition >= limit) return index + 1
                 }
             }
         }
