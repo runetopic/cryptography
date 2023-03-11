@@ -47,31 +47,6 @@ class Huffman(
         }
     }
 
-    private tailrec fun IntArray.shiftUp(mask: Int, index: Int) {
-        if (index == 0) return
-        val count = this[index]
-        if (count != mask) {
-            return
-        }
-
-        val x = 1 shl 32 - index
-        if (count and x != 0) {
-            this[index] = this[index - 1]
-            return
-        }
-
-        this[index] = count or x
-        return shiftUp(mask, index - 1)
-    }
-
-    private tailrec fun IntArray.comb(mask: Int, index: Int, x: Int) {
-        if (index > 32) return
-        if (this[index] == mask) {
-            this[index] = x
-        }
-        return comb(mask, index + 1, x)
-    }
-
     tailrec fun compress(
         input: ByteArray,
         output: ByteArray,
@@ -85,36 +60,14 @@ class Huffman(
         if (size.toInt() == 0) throw RuntimeException("Size is equal to zero for Data = $unsignedByte")
         val remainder = bitPosition and 7
         val offset = bitPosition shr 3
-        val nextKey = output.calculateNextKey((-1 + (remainder - -size) shr 3) + offset, remainder + 24, masks[unsignedByte], key and (-remainder shr 31), offset)
+        val nextKey = output.calculateNextKey(
+            inverse = (-1 + (remainder - -size) shr 3) + offset,
+            remainder = remainder + 24,
+            mask = masks[unsignedByte],
+            startKey = key and (-remainder shr 31),
+            offset = offset
+        )
         return compress(input, output, nextKey, bitPosition + size.toInt(), curr + 1)
-    }
-
-    private tailrec fun ByteArray.calculateNextKey(
-        inverse: Int,
-        remainder: Int,
-        mask: Int,
-        startKey: Int,
-        offset: Int,
-        curr: Int = 0
-    ): Int = when (curr) {
-        0 -> {
-            val next = startKey or (mask ushr remainder)
-            this[offset] = next.toByte()
-            if (inverse.inv() >= offset.inv()) next
-            else calculateNextKey(inverse, remainder - 8, mask, startKey, offset, 1)
-        }
-        4 -> {
-            val next = mask shl -remainder
-            this[offset + 1] = next.toByte()
-            next
-        }
-        else -> {
-            val next = mask ushr remainder
-            this[offset + 1] = next.toByte()
-            if (curr == 3 && inverse <= offset + 1) next
-            else if ((offset + 1).inv() <= inverse.inv()) next
-            else calculateNextKey(inverse, remainder - 8, mask, startKey, offset + 1, curr + 1)
-        }
     }
 
     tailrec fun decompress(
@@ -159,5 +112,58 @@ class Huffman(
             return 0
         }
         return nextIndex
+    }
+
+    private tailrec fun ByteArray.calculateNextKey(
+        inverse: Int,
+        remainder: Int,
+        mask: Int,
+        startKey: Int,
+        offset: Int,
+        curr: Int = 0
+    ): Int = when (curr) {
+        0 -> {
+            val next = startKey or (mask ushr remainder)
+            this[offset] = next.toByte()
+            if (inverse.inv() >= offset.inv()) next
+            else calculateNextKey(inverse, remainder - 8, mask, startKey, offset, 1)
+        }
+        4 -> {
+            val next = mask shl -remainder
+            this[offset + 1] = next.toByte()
+            next
+        }
+        else -> {
+            val next = mask ushr remainder
+            this[offset + 1] = next.toByte()
+            if (curr == 3 && inverse <= offset + 1) next
+            else if ((offset + 1).inv() <= inverse.inv()) next
+            else calculateNextKey(inverse, remainder - 8, mask, startKey, offset + 1, curr + 1)
+        }
+    }
+
+    private tailrec fun IntArray.shiftUp(mask: Int, index: Int) {
+        if (index == 0) return
+        val count = this[index]
+        if (count != mask) {
+            return
+        }
+
+        val x = 1 shl 32 - index
+        if (count and x != 0) {
+            this[index] = this[index - 1]
+            return
+        }
+
+        this[index] = count or x
+        return shiftUp(mask, index - 1)
+    }
+
+    private tailrec fun IntArray.comb(mask: Int, index: Int, x: Int) {
+        if (index > 32) return
+        if (this[index] == mask) {
+            this[index] = x
+        }
+        return comb(mask, index + 1, x)
     }
 }
