@@ -126,106 +126,41 @@ class Huffman(
         curr: Int = 0
     ): Int {
         if (decompressedLength == 0) return 0
+        val compressedByte = compressed[curr].toInt()
 
         var decompressedIndex = currDecompressedIndex
         var keyIndex = currKeyIndex
 
-        val compressedByte = compressed[curr]
-
-        if (compressedByte < 0) {
-            keyIndex = keys[keyIndex]
-        } else {
-            ++keyIndex
+        keyIndex = decompressed.checkKey(compressedByte, 0, keyIndex, decompressedIndex).also {
+            if (it == 0 && decompressedIndex++ >= decompressedLength) return curr + 1
         }
 
-        if (keys[keyIndex] < 0) {
-            decompressed[decompressedIndex++] = keys[keyIndex].inv().toByte()
-            if (decompressedIndex >= decompressedLength) return curr + 1
-            keyIndex = 0
+        keyIndex = decompressed.checkKey(compressedByte, 0x40, keyIndex, decompressedIndex).also {
+            if (it == 0 && decompressedIndex++ >= decompressedLength) return curr + 1
         }
 
-        if (compressedByte.toInt() and 0x40 != 0) {
-            keyIndex = keys[keyIndex]
-        } else {
-            ++keyIndex
+        keyIndex = decompressed.checkKey(compressedByte, 0x20, keyIndex, decompressedIndex).also {
+            if (it == 0 && decompressedIndex++ >= decompressedLength) return curr + 1
         }
 
-        if (keys[keyIndex] < 0) {
-            decompressed[decompressedIndex++] = keys[keyIndex].inv().toByte()
-            if (decompressedIndex >= decompressedLength) return curr + 1
-            keyIndex = 0
+        keyIndex = decompressed.checkKey(compressedByte, 0x10, keyIndex, decompressedIndex).also {
+            if (it == 0 && decompressedIndex++ >= decompressedLength) return curr + 1
         }
 
-        if (compressedByte.toInt() and 0x20 != 0) {
-            keyIndex = keys[keyIndex]
-        } else {
-            ++keyIndex
+        keyIndex = decompressed.checkKey(compressedByte, 0x8, keyIndex, decompressedIndex).also {
+            if (it == 0 && decompressedIndex++ >= decompressedLength) return curr + 1
         }
 
-        if (keys[keyIndex] < 0) {
-            decompressed[decompressedIndex++] = keys[keyIndex].inv().toByte()
-            if (decompressedIndex >= decompressedLength) return curr + 1
-            keyIndex = 0
+        keyIndex = decompressed.checkKey(compressedByte, 0x4, keyIndex, decompressedIndex).also {
+            if (it == 0 && decompressedIndex++ >= decompressedLength) return curr + 1
         }
 
-        if (compressedByte.toInt() and 0x10 != 0) {
-            keyIndex = keys[keyIndex]
-        } else {
-            ++keyIndex
+        keyIndex = decompressed.checkKey(compressedByte, 0x2, keyIndex, decompressedIndex).also {
+            if (it == 0 && decompressedIndex++ >= decompressedLength) return curr + 1
         }
 
-        if (keys[keyIndex] < 0) {
-            decompressed[decompressedIndex++] = keys[keyIndex].inv().toByte()
-            if (decompressedIndex >= decompressedLength) return curr + 1
-            keyIndex = 0
-        }
-
-        if (compressedByte.toInt() and 0x8 != 0) {
-            keyIndex = keys[keyIndex]
-        } else {
-            ++keyIndex
-        }
-
-        if (keys[keyIndex] < 0) {
-            decompressed[decompressedIndex++] = keys[keyIndex].inv().toByte()
-            if (decompressedIndex >= decompressedLength) return curr + 1
-            keyIndex = 0
-        }
-
-        if (compressedByte.toInt() and 0x4 != 0) {
-            keyIndex = keys[keyIndex]
-        } else {
-            ++keyIndex
-        }
-
-        if (keys[keyIndex] < 0) {
-            decompressed[decompressedIndex++] = keys[keyIndex].inv().toByte()
-            if (decompressedIndex >= decompressedLength) return curr + 1
-            keyIndex = 0
-        }
-
-        if (compressedByte.toInt() and 0x2 != 0) {
-            keyIndex = keys[keyIndex]
-        } else {
-            ++keyIndex
-        }
-
-        if (keys[keyIndex] < 0) {
-            decompressed[decompressedIndex++] = keys[keyIndex].inv().toByte()
-            if (decompressedIndex >= decompressedLength) return curr + 1
-            keyIndex = 0
-        }
-
-        if (compressedByte.toInt() and 0x1 != 0) {
-            keyIndex = keys[keyIndex]
-        } else {
-            ++keyIndex
-        }
-
-        if (keys[keyIndex] < 0) {
-            decompressed[decompressedIndex++] = keys[keyIndex].inv().toByte()
-            if (decompressedIndex >= decompressedLength) return curr + 1
-            keyIndex = 0
+        keyIndex = decompressed.checkKey(compressedByte, 0x1, keyIndex, decompressedIndex).also {
+            if (it == 0 && decompressedIndex++ >= decompressedLength) return curr + 1
         }
 
         return decompress(
@@ -236,5 +171,18 @@ class Huffman(
             currKeyIndex = keyIndex,
             curr = curr + 1
         )
+    }
+
+    private fun ByteArray.checkKey(compressedByte: Int, mask: Int, keyIndex: Int, decompressedIndex: Int): Int {
+        val index = if ((compressedByte < 0 && mask == 0) || compressedByte and mask != 0) {
+            keys[keyIndex]
+        } else {
+            keyIndex + 1
+        }
+        if (keys[index] < 0) {
+            this[decompressedIndex] = keys[index].inv().toByte()
+            return 0
+        }
+        return index
     }
 }
