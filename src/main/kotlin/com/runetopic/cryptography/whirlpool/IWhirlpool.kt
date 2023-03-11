@@ -1,6 +1,6 @@
 package com.runetopic.cryptography.whirlpool
 
-import com.runetopic.cryptography.ICryptography
+import com.runetopic.cryptography.Algorithm
 import com.runetopic.cryptography.downUntil
 import com.runetopic.cryptography.g8
 import com.runetopic.cryptography.p8
@@ -8,7 +8,7 @@ import com.runetopic.cryptography.p8
 /**
  * @author Jordan Abraham
  */
-internal interface IWhirlpool : ICryptography<ByteArray, ByteArray> {
+internal interface IWhirlpool : Algorithm<ByteArray, ByteArray> {
     fun getRounds(): Int
     fun getSize(): Int
     fun getBlock(): Array<LongArray>
