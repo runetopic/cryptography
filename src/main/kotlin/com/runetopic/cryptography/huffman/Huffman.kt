@@ -59,13 +59,13 @@ class Huffman(
         val size = sizes[byte]
         if (size.toInt() == 0) throw RuntimeException("Size is equal to zero for Data = $byte")
         val remainder = position and 7
-        val offset = position shr 3
-        val nextKey = output.calculateNextKey(
-            inverse = (-1 + (remainder - -size) shr 3) + offset,
+        val readPosition = position shr 3
+        val nextKey = output.getKey(
+            inverse = (-1 + (remainder - -size) shr 3) + readPosition,
             remainder = remainder + 24,
             mask = masks[byte],
             startKey = key and (-remainder shr 31),
-            offset = offset
+            readPosition = readPosition
         )
         return compress(input, output, nextKey, position + size.toInt(), index + 1)
     }
@@ -111,31 +111,31 @@ class Huffman(
         return nextReadPosition
     }
 
-    private tailrec fun ByteArray.calculateNextKey(
+    private tailrec fun ByteArray.getKey(
         inverse: Int,
         remainder: Int,
         mask: Int,
         startKey: Int,
-        offset: Int,
-        block: Int = 0
-    ): Int = when (block) {
+        readPosition: Int,
+        segment: Int = 0
+    ): Int = when (segment) {
         0 -> {
             val next = startKey or (mask ushr remainder)
-            this[offset] = next.toByte()
-            if (inverse.inv() >= offset.inv()) next
-            else calculateNextKey(inverse, remainder - 8, mask, startKey, offset + 1, 1)
+            this[readPosition] = next.toByte()
+            if (inverse.inv() >= readPosition.inv()) next
+            else getKey(inverse, remainder - 8, mask, startKey, readPosition + 1, 1)
         }
         4 -> {
             val next = mask shl -remainder
-            this[offset] = next.toByte()
+            this[readPosition] = next.toByte()
             next
         }
         else -> {
             val next = mask ushr remainder
-            this[offset] = next.toByte()
-            if (block == 3 && inverse <= offset) next
-            else if (offset.inv() <= inverse.inv()) next
-            else calculateNextKey(inverse, remainder - 8, mask, startKey, offset + 1, block + 1)
+            this[readPosition] = next.toByte()
+            if (segment == 3 && inverse <= readPosition) next
+            else if (readPosition.inv() <= inverse.inv()) next
+            else getKey(inverse, remainder - 8, mask, startKey, readPosition + 1, segment + 1)
         }
     }
 
