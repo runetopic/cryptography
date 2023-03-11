@@ -3,6 +3,7 @@
 package com.runetopic.cryptography
 
 import com.runetopic.cryptography.huffman.Huffman
+import com.runetopic.cryptography.huffman.HuffmanInput
 import com.runetopic.cryptography.isaac.ISAAC
 import com.runetopic.cryptography.whirlpool.Whirlpool
 import com.runetopic.cryptography.xtea.XTEA
@@ -11,15 +12,16 @@ import java.nio.ByteBuffer
 /**
  * @author Jordan Abraham
  */
-fun ByteArray.decompressHuffman(huffman: Huffman, length: Int, maxLength: Int = 75): String {
-    var actualLength = length
-    if (actualLength > maxLength) actualLength = maxLength
-    val decompressed = ByteArray(256)
-    huffman.decompress(this, decompressed, actualLength)
-    return String(decompressed, 0, actualLength)
-}
 
-fun String.compressHuffman(huffman: Huffman, dest: ByteArray): Int = huffman.compress(toByteArray(), dest)
+/**
+ * @see Huffman.from(HuffmanInput)
+ */
+fun ByteArray.decompressHuffman(huffman: Huffman, size: Int): ByteArray = huffman.from(HuffmanInput(this, size))
+
+/**
+ * @see Huffman.to(HuffmanInput)
+ */
+fun ByteArray.compressHuffman(huffman: Huffman): ByteArray = huffman.to(HuffmanInput(this, -1))
 
 /**
  * @see XTEA.from(ByteArray).

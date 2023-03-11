@@ -1,8 +1,9 @@
 package com.runetopic.cryptography.huffman
 
 class Huffman(
-    private val sizes: ByteArray
-) {
+    private val sizes: ByteArray,
+    private val limit: Int
+) : HuffmanAlgorithm {
     private var masks: IntArray = IntArray(sizes.size)
     private var keys: IntArray = IntArray(8)
 
@@ -47,15 +48,34 @@ class Huffman(
         }
     }
 
-    tailrec fun compress(
-        input: ByteArray,
-        output: ByteArray,
+    /**
+     * Decompress a HuffmanInput with Huffman to an output ByteArray. This output can be directly wrapped into a String.
+     * The input ByteArray is from the packet data containing a Huffman compressed data.
+     * The input size is from the packet data containing the length of the data when decompressed.
+     * The output ByteArray is the Huffman decompressed data and is sliced from 0 until the inputted size.
+     * Please note the input size is limited to the limit set by your Huffman object using this.
+     */
+    override fun from(src: HuffmanInput): ByteArray = src.input.decompress(src.size.let { if (it > limit) limit else it })
+
+    /**
+     * Compress a HuffmanInput with Huffman to an output ByteArray. This output can be directly wrapped into a String.
+     * The input ByteArray is the formatted String that you want to compress with Huffman.
+     * The output ByteArray is the Huffman compressed data that is sliced from 0 until the compressed data or the limit set by your Huffman object.
+     * Please note the compressed ByteArray output is limited to the limit set by your Huffman object using this.
+     */
+    override fun to(src: HuffmanInput): ByteArray = src.input.compress()
+
+    private tailrec fun ByteArray.compress(
+        output: ByteArray = ByteArray(256),
         key: Int = 0,
         position: Int = 0,
         index: Int = 0
-    ): Int {
-        if (index == input.size) return 7 + position shr 3
-        val byte = input[index].toInt() and 0xFF
+    ): ByteArray {
+        if (index == size) {
+            // Slice the output from 0 until the size of this compressed data limited by the limit property of this object.
+            return output.sliceArray(0 until (7 + position shr 3).let { if (it > limit) limit else it })
+        }
+        val byte = this[index].toInt() and 0xFF
         val size = sizes[byte]
         if (size.toInt() == 0) throw RuntimeException("Size is equal to zero for Data = $byte")
         val remainder = position and 7
@@ -67,29 +87,31 @@ class Huffman(
             startKey = key and (-remainder shr 31),
             readPosition = readPosition
         )
-        return compress(input, output, nextKey, position + size.toInt(), index + 1)
+        return compress(output, nextKey, position + size.toInt(), index + 1)
     }
 
-    tailrec fun decompress(
-        input: ByteArray,
-        output: ByteArray,
+    private tailrec fun ByteArray.decompress(
         limit: Int,
+        output: ByteArray = ByteArray(256),
         currentWritePosition: Int = 0,
         currentReadPosition: Int = 0,
         index: Int = 0
-    ): Int {
-        if (limit == 0) return 0
-        val byte = input[index].toInt()
+    ): ByteArray {
+        if (limit == 0) return ByteArray(0)
+        val byte = this[index].toInt()
 
         var writePosition = currentWritePosition
         var readPosition = currentReadPosition
 
         repeat(8) { x ->
-            readPosition = output.putDecodedValue(byte, if (x == 0) -1 else 64 shr (x - 1), readPosition, writePosition).also {
-                if (it == 0 && ++writePosition >= limit) return index + 1
+            readPosition = output.putDecodedValue(byte, if (x == 0) -1 else 64 shr (x - 1), readPosition, writePosition).also { pos ->
+                if (pos == 0 && ++writePosition >= limit) {
+                    // Slice the output from 0 until the size set by the input HuffmanInput limited by this Huffman object limit property.
+                    return output.sliceArray(0 until limit)
+                }
             }
         }
-        return decompress(input, output, limit, writePosition, readPosition, index + 1)
+        return decompress(limit, output, writePosition, readPosition, index + 1)
     }
 
     private fun ByteArray.putDecodedValue(

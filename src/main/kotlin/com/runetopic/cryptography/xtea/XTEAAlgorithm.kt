@@ -6,7 +6,7 @@ import java.nio.ByteBuffer
 /**
  * @author Jordan Abraham
  */
-internal interface XTEAAlgorithm : Algorithm<ByteArray, ByteBuffer> {
+internal interface XTEAAlgorithm : Algorithm<ByteArray, ByteBuffer, ByteBuffer> {
     fun getRounds(): Int
     fun getKeys(): IntArray
 }
