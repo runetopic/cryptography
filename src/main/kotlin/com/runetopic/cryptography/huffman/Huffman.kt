@@ -19,7 +19,7 @@ class Huffman(
             val value = if (mask and x != 0) {
                 values[size - 1]
             } else {
-                values.shiftUp(mask, size - 1)
+                values.shift(mask, size - 1)
                 mask or x
             }
             values[size.toInt()] = value
@@ -142,21 +142,19 @@ class Huffman(
         }
     }
 
-    private tailrec fun IntArray.shiftUp(mask: Int, index: Int) {
+    private tailrec fun IntArray.shift(mask: Int, index: Int) {
         if (index == 0) return
-        val count = this[index]
-        if (count != mask) {
-            return
-        }
+        val value = this[index]
+        if (value != mask) return
 
         val x = 1 shl 32 - index
-        if (count and x != 0) {
+        if (value and x != 0) {
             this[index] = this[index - 1]
             return
         }
 
-        this[index] = count or x
-        return shiftUp(mask, index - 1)
+        this[index] = value or x
+        return shift(mask, index - 1)
     }
 
     private tailrec fun IntArray.comb(mask: Int, index: Int, x: Int) {
