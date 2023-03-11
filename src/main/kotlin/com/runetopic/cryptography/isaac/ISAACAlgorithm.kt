@@ -5,6 +5,6 @@ import com.runetopic.cryptography.Algorithm
 /**
  * @author Jordan Abraham
  */
-internal interface IISAAC : Algorithm<IntArray, IISAAC> {
+internal interface ISAACAlgorithm : Algorithm<IntArray, ISAACAlgorithm> {
     fun getNext(): Int
 }
