@@ -24,61 +24,71 @@ internal interface WhirlpoolAlgorithm : Algorithm<ByteArray, ByteArray> {
     fun maskWithReductionPolynomial(value: Long): Long = if (value >= 256) (value xor 0x11D) else value
 
     fun hash(src: ByteArray, size: Int): ByteArray {
-        NEESIEAddThenFinalize(src, (src.size * 8).toLong())
-        val hash = ByteArray(size)
-        (0 until 8).forEach { hash.p8(it * 8, getHash()[it]) }
-        return hash
+        addThenFinalizeNEESIE(src, (src.size * 8).toLong())
+        return ByteArray(size).apply {
+            repeat(8) { p8(it * 8, getHash()[it]) }
+        }
     }
 
-    private fun NEESIEAddThenFinalize(src: ByteArray, bits: Long) {
-        var value = bits
-        var carry = 0
-        (31 downTo 0).forEach {
-            carry += (getBitSize()[it].toInt() and 0xFF) + (value.toInt() and 0xFF)
-            getBitSize()[it] = carry.toByte()
-            carry = carry ushr 8
-            value = value ushr 8
-        }
-
+    private fun addThenFinalizeNEESIE(src: ByteArray, bits: Long) {
+        calculateBitSize(bits)
         val space = (8 - (bits.toInt() and 7)) and 7
         val occupied = getDigestBits() and 7
-        var srcPosition = 0
+
+        var position = 0
         var byte: Int
         (bits.toInt() downUntil 8 step 8).forEach { _ ->
-            byte = (((src[srcPosition].toInt() shl space) and 0xFF) or ((src[srcPosition + 1].toInt() and 0xFF) ushr (8 - space)))
+            byte = (((src[position].toInt() shl space) and 0xFF) or ((src[position + 1].toInt() and 0xFF) ushr (8 - space)))
             getBuffer()[getPosition()] = (getBuffer()[getPosition()].toInt() or (byte ushr occupied)).toByte()
             shift(occupied, byte)
             addDigestBits(occupied)
-            srcPosition++
+            position++
         }
 
-        val leftover = bits - srcPosition * 8
-        byte = if (leftover > 0) (src[srcPosition].toInt() shl space) and 0xFF else 0
+        val leftover = bits - position * 8
+        val leftoverByte = if (leftover > 0) (src[position].toInt() shl space) and 0xFF else 0
         if (leftover > 0) {
-            getBuffer()[getPosition()] = (getBuffer()[getPosition()].toInt() or (byte ushr occupied)).toByte()
+            getBuffer()[getPosition()] = (getBuffer()[getPosition()].toInt() or (leftoverByte ushr occupied)).toByte()
         }
         if (occupied + leftover >= 8) {
-            shift(occupied, byte)
+            shift(occupied, leftoverByte)
         }
         addDigestBits(leftover.toInt())
         finalize()
+    }
+
+    private tailrec fun calculateBitSize(
+        value: Long,
+        offset: Int = 32,
+        carry: Int = 0
+    ) {
+        if (offset == 0) return
+        val shift = carry + (getBitSize()[offset - 1].toInt() and 0xFF) + (value.toInt() and 0xFF)
+        getBitSize()[offset - 1] = shift.toByte()
+        return calculateBitSize(
+            value = value ushr 8,
+            offset = offset - 1,
+            carry = shift ushr 8
+        )
     }
 
     private fun finalize() {
         getBuffer()[getPosition()] = (getBuffer()[getPosition()].toInt() or (0x80 ushr (getDigestBits() and 7))).toByte()
         incrementPosition()
         if (getPosition() > 32) {
-            while (getPosition() < 64) {
-                getBuffer()[incrementPositionAndReturn()] = 0
-            }
+            fill(64)
             transform()
             setPosition(0)
         }
-        while (getPosition() < 32) {
-            getBuffer()[incrementPositionAndReturn()] = 0
-        }
+        fill(32)
         getBitSize().copyInto(getBuffer(), 32, 0, 32)
         transform()
+    }
+
+    private tailrec fun fill(limit: Int) {
+        if (getPosition() >= limit) return
+        getBuffer()[incrementPositionAndReturn()] = 0
+        return fill(limit)
     }
 
     private fun transform() {
@@ -87,25 +97,25 @@ internal interface WhirlpoolAlgorithm : Algorithm<ByteArray, ByteArray> {
         val roundKey = LongArray(8)
         val result = LongArray(8)
 
-        (0 until 8).forEach {
+        repeat(8) {
             block[it] = getBuffer().g8(it * 8)
             roundKey[it] = getHash()[it]
             state[it] = block[it] xor roundKey[it]
         }
 
-        (1..getRounds()).forEach { round ->
-            (0 until 8).forEach {
+        for (round in 1..getRounds()) {
+            repeat(8) {
                 result[it] = 0
-                (0 until 8).forEach { index ->
+                repeat(8) { index ->
                     val offset = 56 - (8 * index)
                     result[it] = result[it] xor getBlock()[index][(roundKey[(it - index) and 7] ushr offset).toInt() and 0xFF]
                 }
             }
             result.copyInto(roundKey)
             roundKey[0] = roundKey[0] xor getBlockRounds()[round]
-            (0 until 8).forEach {
+            repeat(8) {
                 result[it] = roundKey[it]
-                (0 until 8).forEach { index ->
+                repeat(8) { index ->
                     val offset = 56 - (8 * index)
                     result[it] = result[it] xor getBlock()[index][(state[(it - index) and 7] ushr offset).toInt() and 0xFF]
                 }
@@ -113,7 +123,7 @@ internal interface WhirlpoolAlgorithm : Algorithm<ByteArray, ByteArray> {
             result.copyInto(state)
         }
 
-        (0 until 8).forEach {
+        repeat(8) {
             getHash()[it] = getHash()[it] xor state[it] xor block[it]
         }
     }
