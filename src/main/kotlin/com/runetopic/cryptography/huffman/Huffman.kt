@@ -120,8 +120,8 @@ class Huffman(
         mask: Int,
         startKey: Int,
         offset: Int,
-        curr: Int = 0
-    ): Int = when (curr) {
+        block: Int = 0
+    ): Int = when (block) {
         0 -> {
             val next = startKey or (mask ushr remainder)
             this[offset] = next.toByte()
@@ -136,9 +136,9 @@ class Huffman(
         else -> {
             val next = mask ushr remainder
             this[offset] = next.toByte()
-            if (curr == 3 && inverse <= offset) next
+            if (block == 3 && inverse <= offset) next
             else if (offset.inv() <= inverse.inv()) next
-            else calculateNextKey(inverse, remainder - 8, mask, startKey, offset + 1, curr + 1)
+            else calculateNextKey(inverse, remainder - 8, mask, startKey, offset + 1, block + 1)
         }
     }
 
