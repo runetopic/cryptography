@@ -20,16 +20,17 @@ class Huffman(
             var keyIndex: Int
             var count: Int
             var i_12: Int
-            if (value and i_7 != 0)
+            if (value and i_7 != 0) {
                 i_9 = values[size - 1]
-            else {
+            } else {
                 i_9 = value or i_7
 
                 keyIndex = size - 1
                 while (keyIndex >= 1) {
                     count = values[keyIndex]
-                    if (count != value)
+                    if (count != value) {
                         break
+                    }
 
                     i_12 = 1 shl 32 - keyIndex
                     if (count and i_12 != 0) {
@@ -46,8 +47,9 @@ class Huffman(
 
             keyIndex = size + 1
             while (keyIndex <= 32) {
-                if (values[keyIndex] == value)
+                if (values[keyIndex] == value) {
                     values[keyIndex] = i_9
+                }
                 keyIndex++
             }
 
@@ -57,12 +59,14 @@ class Huffman(
             while (count < size) {
                 i_12 = Integer.MIN_VALUE.ushr(count)
                 if (value and i_12 != 0) {
-                    if (keys[keyIndex] == 0)
+                    if (keys[keyIndex] == 0) {
                         keys[keyIndex] = key
+                    }
 
                     keyIndex = keys[keyIndex]
-                } else
+                } else {
                     ++keyIndex
+                }
 
                 if (keyIndex >= keys.size) {
                     val keysCopy = IntArray(keys.size * 2)
@@ -74,8 +78,9 @@ class Huffman(
             }
 
             keys[keyIndex] = index.inv()
-            if (keyIndex >= key)
+            if (keyIndex >= key) {
                 key = keyIndex + 1
+            }
         }
     }
 
@@ -129,124 +134,140 @@ class Huffman(
         var decompressedLen = decompressedLength
         val i_2 = 0
         var i_4 = 0
-        if (decompressedLength == 0)
+        if (decompressedLength == 0) {
             return 0
-        else {
+        } else {
             var i_7 = 0
             decompressedLen += i_4
             var i_8 = i_2
 
             while (true) {
                 val b_9 = compressed[i_8]
-                if (b_9 < 0)
+                if (b_9 < 0) {
                     i_7 = keys[i_7]
-                else
+                } else {
                     ++i_7
+                }
 
                 var i_10: Int
                 i_10 = keys[i_7]
                 if (i_10 < 0) {
                     decompressed[i_4++] = i_10.inv().toByte()
-                    if (i_4 >= decompressedLength)
+                    if (i_4 >= decompressedLength) {
                         break
+                    }
 
                     i_7 = 0
                 }
 
-                if (b_9.toInt() and 0x40 != 0)
+                if (b_9.toInt() and 0x40 != 0) {
                     i_7 = keys[i_7]
-                else
+                } else {
                     ++i_7
+                }
 
                 i_10 = keys[i_7]
                 if (i_10 < 0) {
                     decompressed[i_4++] = i_10.inv().toByte()
-                    if (i_4 >= decompressedLength)
+                    if (i_4 >= decompressedLength) {
                         break
+                    }
 
                     i_7 = 0
                 }
 
-                if (b_9.toInt() and 0x20 != 0)
+                if (b_9.toInt() and 0x20 != 0) {
                     i_7 = keys[i_7]
-                else
+                } else {
                     ++i_7
+                }
 
                 i_10 = keys[i_7]
                 if (i_10 < 0) {
                     decompressed[i_4++] = i_10.inv().toByte()
-                    if (i_4 >= decompressedLength)
+                    if (i_4 >= decompressedLength) {
                         break
+                    }
 
                     i_7 = 0
                 }
 
-                if (b_9.toInt() and 0x10 != 0)
+                if (b_9.toInt() and 0x10 != 0) {
                     i_7 = keys[i_7]
-                else
+                } else {
                     ++i_7
+                }
 
                 i_10 = keys[i_7]
                 if (i_10 < 0) {
                     decompressed[i_4++] = i_10.inv().toByte()
-                    if (i_4 >= decompressedLength)
+                    if (i_4 >= decompressedLength) {
                         break
+                    }
 
                     i_7 = 0
                 }
 
-                if (b_9.toInt() and 0x8 != 0)
+                if (b_9.toInt() and 0x8 != 0) {
                     i_7 = keys[i_7]
-                else
+                } else {
                     ++i_7
+                }
 
                 i_10 = keys[i_7]
                 if (i_10 < 0) {
                     decompressed[i_4++] = i_10.inv().toByte()
-                    if (i_4 >= decompressedLength)
+                    if (i_4 >= decompressedLength) {
                         break
+                    }
 
                     i_7 = 0
                 }
 
-                if (b_9.toInt() and 0x4 != 0)
+                if (b_9.toInt() and 0x4 != 0) {
                     i_7 = keys[i_7]
-                else
+                } else {
                     ++i_7
+                }
 
                 i_10 = keys[i_7]
                 if (i_10 < 0) {
                     decompressed[i_4++] = i_10.inv().toByte()
-                    if (i_4 >= decompressedLength)
+                    if (i_4 >= decompressedLength) {
                         break
+                    }
 
                     i_7 = 0
                 }
 
-                if (b_9.toInt() and 0x2 != 0)
+                if (b_9.toInt() and 0x2 != 0) {
                     i_7 = keys[i_7]
-                else
+                } else {
                     ++i_7
+                }
 
                 i_10 = keys[i_7]
                 if (i_10 < 0) {
                     decompressed[i_4++] = i_10.inv().toByte()
-                    if (i_4 >= decompressedLength)
+                    if (i_4 >= decompressedLength) {
                         break
+                    }
 
                     i_7 = 0
                 }
 
-                if (b_9.toInt() and 0x1 != 0)
+                if (b_9.toInt() and 0x1 != 0) {
                     i_7 = keys[i_7]
-                else
+                } else {
                     ++i_7
+                }
 
                 i_10 = keys[i_7]
                 if (i_10 < 0) {
                     decompressed[i_4++] = i_10.inv().toByte()
-                    if (i_4 >= decompressedLength)
+                    if (i_4 >= decompressedLength) {
                         break
+                    }
 
                     i_7 = 0
                 }
