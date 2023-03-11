@@ -8,7 +8,7 @@ import com.runetopic.cryptography.p8
 /**
  * @author Jordan Abraham
  */
-internal interface IWhirlpool : Algorithm<ByteArray, ByteArray> {
+internal interface WhirlpoolAlgorithm : Algorithm<ByteArray, ByteArray> {
     fun getRounds(): Int
     fun getSize(): Int
     fun getBlock(): Array<LongArray>

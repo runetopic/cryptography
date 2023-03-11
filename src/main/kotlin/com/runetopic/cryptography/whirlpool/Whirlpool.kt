@@ -6,7 +6,7 @@ package com.runetopic.cryptography.whirlpool
 class Whirlpool(
     private val rounds: Int,
     private val size: Int
-) : IWhirlpool {
+) : WhirlpoolAlgorithm {
     private val block = Array(8) { LongArray(256) }
     private val blockRounds = LongArray(rounds + 1)
     private val hash = LongArray(8)
