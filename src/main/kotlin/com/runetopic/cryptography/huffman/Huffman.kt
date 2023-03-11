@@ -1,5 +1,9 @@
 package com.runetopic.cryptography.huffman
 
+fun main() {
+    println(0x40 shr 2)
+}
+
 class Huffman(
     private val sizes: ByteArray
 ) {
@@ -84,8 +88,8 @@ class Huffman(
         var writePosition = currentWritePosition
         var readPosition = currentReadPosition
 
-        intArrayOf(-1, 0x40, 0x20, 0x10, 0x8, 0x4, 0x2, 0x1).forEach { mask ->
-            readPosition = output.putKey(byte, mask, readPosition, writePosition).also {
+        repeat(8) { x ->
+            readPosition = output.putKey(byte, if (x == 0) -1 else 64 shr (x - 1), readPosition, writePosition).also {
                 if (it == 0) {
                     writePosition++
                     if (writePosition >= limit) return index + 1
