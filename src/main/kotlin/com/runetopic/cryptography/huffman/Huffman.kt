@@ -10,6 +10,8 @@ class Huffman(
         val values = IntArray(33)
         var currIndex = 0
 
+        println(sizes.size)
+
         repeat(sizes.size) {
             val size = sizes[it]
             if (size.toInt() == 0) return@repeat
@@ -45,6 +47,7 @@ class Huffman(
                 currIndex = keyIndex + 1
             }
         }
+        println(keys.size)
     }
 
     tailrec fun compress(
@@ -59,13 +62,13 @@ class Huffman(
         val size = sizes[byte]
         if (size.toInt() == 0) throw RuntimeException("Size is equal to zero for Data = $byte")
         val remainder = position and 7
-        val writePosition = position shr 3
-        val nextKey = output.getKey(
-            limit = (-1 + (remainder - -size) shr 3) + writePosition,
+        val readPosition = position shr 3
+        val nextKey = output.putEncodedValue(
+            limit = (-1 + (remainder - -size) shr 3) + readPosition,
             remainder = remainder + 24,
             mask = masks[byte],
             startKey = key and (-remainder shr 31),
-            writePosition = writePosition
+            readPosition = readPosition
         )
         return compress(input, output, nextKey, position + size.toInt(), index + 1)
     }
@@ -85,14 +88,14 @@ class Huffman(
         var readPosition = currentReadPosition
 
         repeat(8) { x ->
-            readPosition = output.putKey(byte, if (x == 0) -1 else 64 shr (x - 1), readPosition, writePosition).also {
+            readPosition = output.putDecodedValue(byte, if (x == 0) -1 else 64 shr (x - 1), readPosition, writePosition).also {
                 if (it == 0 && ++writePosition >= limit) return index + 1
             }
         }
         return decompress(input, output, limit, writePosition, readPosition, index + 1)
     }
 
-    private fun ByteArray.putKey(
+    private fun ByteArray.putDecodedValue(
         byte: Int,
         mask: Int,
         readPosition: Int,
@@ -111,31 +114,31 @@ class Huffman(
         return nextReadPosition
     }
 
-    private tailrec fun ByteArray.getKey(
+    private tailrec fun ByteArray.putEncodedValue(
         limit: Int,
         remainder: Int,
         mask: Int,
         startKey: Int,
-        writePosition: Int,
+        readPosition: Int,
         segment: Int = 0
     ): Int = when (segment) {
         0 -> {
             val next = startKey or (mask ushr remainder)
-            this[writePosition] = next.toByte()
-            if (limit.inv() >= writePosition.inv()) next
-            else getKey(limit, remainder - 8, mask, startKey, writePosition + 1, 1)
+            this[readPosition] = next.toByte()
+            if (limit.inv() >= readPosition.inv()) next
+            else putEncodedValue(limit, remainder - 8, mask, startKey, readPosition + 1, 1)
         }
         4 -> {
             val next = mask shl -remainder
-            this[writePosition] = next.toByte()
+            this[readPosition] = next.toByte()
             next
         }
         else -> {
             val next = mask ushr remainder
-            this[writePosition] = next.toByte()
-            if (segment == 3 && limit <= writePosition) next
-            else if (writePosition.inv() <= limit.inv()) next
-            else getKey(limit, remainder - 8, mask, startKey, writePosition + 1, segment + 1)
+            this[readPosition] = next.toByte()
+            if (segment == 3 && limit <= readPosition) next
+            else if (readPosition.inv() <= limit.inv()) next
+            else putEncodedValue(limit, remainder - 8, mask, startKey, readPosition + 1, segment + 1)
         }
     }
 
