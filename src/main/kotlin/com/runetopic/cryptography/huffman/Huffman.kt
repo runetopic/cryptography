@@ -127,8 +127,8 @@ class Huffman(
         var decompressedIndex = currDecompressedIndex
         var keyIndex = currKeyIndex
 
-        intArrayOf(-1, 0x40, 0x20, 0x10, 0x8, 0x4, 0x2, 0x1).forEachIndexed { index, mask ->
-            keyIndex = decompressed.checkInverseAndApplyNextKey(index, compressedByte, mask, keyIndex, decompressedIndex).also {
+        intArrayOf(-1, 0x40, 0x20, 0x10, 0x8, 0x4, 0x2, 0x1).forEach { mask ->
+            keyIndex = decompressed.checkInverseAndApplyNextKey(compressedByte, mask, keyIndex, decompressedIndex).also {
                 if (it == 0) {
                     decompressedIndex++
                     if (decompressedIndex >= decompressedLength) return curr + 1
@@ -139,15 +139,14 @@ class Huffman(
     }
 
     private fun ByteArray.checkInverseAndApplyNextKey(
-        index: Int,
         compressedByte: Int,
         mask: Int,
         keyIndex: Int,
         decompressedIndex: Int
     ): Int {
         val nextIndex = when {
-            index == 0 && compressedByte < 0 -> keys[keyIndex]
-            index != 0 && compressedByte and mask != 0 -> keys[keyIndex]
+            mask == -1 && compressedByte < 0 -> keys[keyIndex]
+            mask != -1 && compressedByte and mask != 0 -> keys[keyIndex]
             else -> keyIndex + 1
         }
         val key = keys[nextIndex]
