@@ -145,8 +145,9 @@ class Huffman(
         } else {
             keyIndex + 1
         }
-        if (keys[index] < 0) {
-            this[decompressedIndex] = keys[index].inv().toByte()
+        val key = keys[index]
+        if (key < 0) {
+            this[decompressedIndex] = key.inv().toByte()
             return 0
         }
         return index
