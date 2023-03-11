@@ -133,7 +133,10 @@ class Huffman(
 
         intArrayOf(-1, 0x40, 0x20, 0x10, 0x8, 0x4, 0x2, 0x1).forEachIndexed { index, mask ->
             keyIndex = decompressed.checkInverseAndApplyNextKey(index, compressedByte, mask, keyIndex, decompressedIndex).also {
-                if (it == 0 && decompressedIndex++ >= decompressedLength) return curr + 1
+                if (it == 0) {
+                    decompressedIndex++
+                    if (decompressedIndex >= decompressedLength) return curr + 1
+                }
             }
         }
         return decompress(compressed, decompressed, decompressedLength, decompressedIndex, keyIndex, curr + 1)
