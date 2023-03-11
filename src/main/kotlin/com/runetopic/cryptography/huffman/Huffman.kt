@@ -1,9 +1,5 @@
 package com.runetopic.cryptography.huffman
 
-fun main() {
-    println(0x40 shr 2)
-}
-
 class Huffman(
     private val sizes: ByteArray
 ) {
