@@ -10,8 +10,6 @@ class Huffman(
         val values = IntArray(33)
         var currIndex = 0
 
-        println(sizes.size)
-
         repeat(sizes.size) {
             val size = sizes[it]
             if (size.toInt() == 0) return@repeat
@@ -47,7 +45,6 @@ class Huffman(
                 currIndex = keyIndex + 1
             }
         }
-        println(keys.size)
     }
 
     tailrec fun compress(
