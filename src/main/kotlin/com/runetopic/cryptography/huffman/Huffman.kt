@@ -136,15 +136,7 @@ class Huffman(
                 if (it == 0 && decompressedIndex++ >= decompressedLength) return curr + 1
             }
         }
-
-        return decompress(
-            compressed = compressed,
-            decompressed = decompressed,
-            decompressedLength = decompressedLength,
-            currDecompressedIndex = decompressedIndex,
-            currKeyIndex = keyIndex,
-            curr = curr + 1
-        )
+        return decompress(compressed, decompressed, decompressedLength, decompressedIndex, keyIndex, curr + 1)
     }
 
     private fun ByteArray.checkKey(compressedByte: Int, mask: Int, keyIndex: Int, decompressedIndex: Int): Int {
