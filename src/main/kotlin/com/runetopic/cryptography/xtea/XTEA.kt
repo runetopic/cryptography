@@ -23,9 +23,9 @@ internal class XTEA(
         v0: Int = int,
         v1: Int = int,
         sum: Int = -0x61C88647 * rounds,
-        curr: Int = 0
+        round: Int = 0
     ) {
-        if (applyBlock(v0, v1, curr)) return
+        if (applyBlock(v0, v1, round)) return
         val one = v1 - ((v0 shl 4 xor (v0 ushr 5)) + v0 xor sum + keys[sum ushr 11 and 3])
         val offset = sum - -0x61C88647
         val zero = v0 - ((one shl 4 xor (one ushr 5)) + one xor offset + keys[offset and 3])
@@ -33,7 +33,7 @@ internal class XTEA(
             v0 = zero,
             v1 = one,
             sum = offset,
-            curr = curr + 1
+            round = round + 1
         )
     }
 
@@ -51,9 +51,9 @@ internal class XTEA(
         v0: Int = int,
         v1: Int = int,
         sum: Int = 0,
-        curr: Int = 0
+        round: Int = 0
     ) {
-        if (applyBlock(v0, v1, curr)) return
+        if (applyBlock(v0, v1, round)) return
         val zero = v0 + ((v1 shl 4 xor (v1 ushr 5)) + v1 xor sum + keys[sum and 3])
         val offset = sum + -0x61C88647
         val one = v1 + ((zero shl 4 xor (zero ushr 5)) + zero xor offset + keys[offset ushr 11 and 3])
@@ -61,7 +61,7 @@ internal class XTEA(
             v0 = zero,
             v1 = one,
             sum = offset,
-            curr = curr + 1
+            round = round + 1
         )
     }
 
