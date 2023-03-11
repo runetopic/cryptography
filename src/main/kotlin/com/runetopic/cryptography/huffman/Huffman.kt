@@ -51,67 +51,67 @@ class Huffman(
         input: ByteArray,
         output: ByteArray,
         key: Int = 0,
-        bitPosition: Int = 0,
-        curr: Int = 0
+        position: Int = 0,
+        index: Int = 0
     ): Int {
-        if (curr == input.size) return 7 + bitPosition shr 3
-        val unsignedByte = input[curr].toInt() and 0xFF
-        val size = sizes[unsignedByte]
-        if (size.toInt() == 0) throw RuntimeException("Size is equal to zero for Data = $unsignedByte")
-        val remainder = bitPosition and 7
-        val offset = bitPosition shr 3
+        if (index == input.size) return 7 + position shr 3
+        val byte = input[index].toInt() and 0xFF
+        val size = sizes[byte]
+        if (size.toInt() == 0) throw RuntimeException("Size is equal to zero for Data = $byte")
+        val remainder = position and 7
+        val offset = position shr 3
         val nextKey = output.calculateNextKey(
             inverse = (-1 + (remainder - -size) shr 3) + offset,
             remainder = remainder + 24,
-            mask = masks[unsignedByte],
+            mask = masks[byte],
             startKey = key and (-remainder shr 31),
             offset = offset
         )
-        return compress(input, output, nextKey, bitPosition + size.toInt(), curr + 1)
+        return compress(input, output, nextKey, position + size.toInt(), index + 1)
     }
 
     tailrec fun decompress(
-        compressed: ByteArray,
-        decompressed: ByteArray,
-        decompressedLength: Int,
-        currDecompressedIndex: Int = 0,
-        currKeyIndex: Int = 0,
-        curr: Int = 0
+        input: ByteArray,
+        output: ByteArray,
+        limit: Int,
+        currentWritePosition: Int = 0,
+        currentReadPosition: Int = 0,
+        index: Int = 0
     ): Int {
-        if (decompressedLength == 0) return 0
-        val compressedByte = compressed[curr].toInt()
+        if (limit == 0) return 0
+        val byte = input[index].toInt()
 
-        var decompressedIndex = currDecompressedIndex
-        var keyIndex = currKeyIndex
+        var writePosition = currentWritePosition
+        var readPosition = currentReadPosition
 
         intArrayOf(-1, 0x40, 0x20, 0x10, 0x8, 0x4, 0x2, 0x1).forEach { mask ->
-            keyIndex = decompressed.checkInverseAndApplyNextKey(compressedByte, mask, keyIndex, decompressedIndex).also {
+            readPosition = output.putKey(byte, mask, readPosition, writePosition).also {
                 if (it == 0) {
-                    decompressedIndex++
-                    if (decompressedIndex >= decompressedLength) return curr + 1
+                    writePosition++
+                    if (writePosition >= limit) return index + 1
                 }
             }
         }
-        return decompress(compressed, decompressed, decompressedLength, decompressedIndex, keyIndex, curr + 1)
+        return decompress(input, output, limit, writePosition, readPosition, index + 1)
     }
 
-    private fun ByteArray.checkInverseAndApplyNextKey(
-        compressedByte: Int,
+    private fun ByteArray.putKey(
+        byte: Int,
         mask: Int,
-        keyIndex: Int,
-        decompressedIndex: Int
+        readPosition: Int,
+        writePosition: Int
     ): Int {
-        val nextIndex = when {
-            mask == -1 && compressedByte < 0 -> keys[keyIndex]
-            mask != -1 && compressedByte and mask != 0 -> keys[keyIndex]
-            else -> keyIndex + 1
+        val nextReadPosition = when {
+            mask == -1 && byte < 0 -> keys[readPosition]
+            mask != -1 && byte and mask != 0 -> keys[readPosition]
+            else -> readPosition + 1
         }
-        val key = keys[nextIndex]
+        val key = keys[nextReadPosition]
         if (key < 0) {
-            this[decompressedIndex] = key.inv().toByte()
+            this[writePosition] = key.inv().toByte()
             return 0
         }
-        return nextIndex
+        return nextReadPosition
     }
 
     private tailrec fun ByteArray.calculateNextKey(
@@ -126,18 +126,18 @@ class Huffman(
             val next = startKey or (mask ushr remainder)
             this[offset] = next.toByte()
             if (inverse.inv() >= offset.inv()) next
-            else calculateNextKey(inverse, remainder - 8, mask, startKey, offset, 1)
+            else calculateNextKey(inverse, remainder - 8, mask, startKey, offset + 1, 1)
         }
         4 -> {
             val next = mask shl -remainder
-            this[offset + 1] = next.toByte()
+            this[offset] = next.toByte()
             next
         }
         else -> {
             val next = mask ushr remainder
-            this[offset + 1] = next.toByte()
-            if (curr == 3 && inverse <= offset + 1) next
-            else if ((offset + 1).inv() <= inverse.inv()) next
+            this[offset] = next.toByte()
+            if (curr == 3 && inverse <= offset) next
+            else if (offset.inv() <= inverse.inv()) next
             else calculateNextKey(inverse, remainder - 8, mask, startKey, offset + 1, curr + 1)
         }
     }
