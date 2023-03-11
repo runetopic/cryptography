@@ -11,7 +11,7 @@ dependencies {
 }
 
 group = "com.runetopic.cryptography"
-version = "1.1.4-SNAPSHOT"
+version = "1.2.0-SNAPSHOT"
 
 kotlin {
     jvmToolchain {
